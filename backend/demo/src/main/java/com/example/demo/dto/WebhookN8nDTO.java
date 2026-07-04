@@ -1,23 +1,30 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class WebhookN8nDTO {
     private String intencion;
     private String cliente;
     private String equipo;
     private String modelo;
-    private String falla_o_servicio;
-    private Integer precio_total;
+    
+    @JsonProperty("falla_o_servicio")
+    private String fallaOServicio;
+    
+    @JsonProperty("precio_total")
+    private Integer precioTotal;
+    
     private Integer abono;
-    private Integer costo_insumos;
+    
+    @JsonProperty("costo_insumos")
+    private Integer costoInsumos;
+    
     private String estado;
     private String plataforma;
 }
