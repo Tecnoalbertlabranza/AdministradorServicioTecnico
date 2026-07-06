@@ -4,26 +4,25 @@ import com.example.demo.dto.ClienteResponseDTO;
 import com.example.demo.dto.TrabajoResponseDTO;
 import com.example.demo.modelos.EstadoTrabajo;
 import com.example.demo.modelos.Trabajo;
-import com.example.demo.repositorios.TrabajoRepository;
+import com.example.demo.servicios.TrabajoService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/trabajos")
 @RequiredArgsConstructor
 public class TrabajoController {
 
-    private final TrabajoRepository trabajoRepository;
+    private final TrabajoService trabajoService;
 
     @GetMapping("/")
     public ResponseEntity<List<TrabajoResponseDTO>> listarTodos() {
-        List<TrabajoResponseDTO> trabajos = trabajoRepository.findAll().stream()
+        List<TrabajoResponseDTO> trabajos = trabajoService.listarTodos().stream()
                 .map(this::convertirADTO)
                 .toList();
         return ResponseEntity.ok(trabajos);
@@ -31,62 +30,46 @@ public class TrabajoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
-        Optional<Trabajo> trabajoOpt = trabajoRepository.findById(id);
-        if (trabajoOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Trabajo no encontrado con ID: " + id));
+        try {
+            Trabajo trabajo = trabajoService.obtenerPorId(id);
+            return ResponseEntity.ok(convertirADTO(trabajo));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
         }
-        return ResponseEntity.ok(convertirADTO(trabajoOpt.get()));
     }
 
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        Optional<Trabajo> trabajoOpt = trabajoRepository.findById(id);
-        if (trabajoOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Trabajo no encontrado con ID: " + id));
-        }
-
         String nuevoEstadoStr = body.get("estado");
         if (nuevoEstadoStr == null || nuevoEstadoStr.trim().isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "El campo 'estado' es requerido"));
+            return ResponseEntity.badRequest().body(Map.of("error", "El campo 'estado' es requerido"));
         }
 
         EstadoTrabajo nuevoEstado;
         try {
             nuevoEstado = EstadoTrabajo.valueOf(nuevoEstadoStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Estado no valido. Los valores permitidos son: PENDIENTE, FINALIZADO, ENTREGADO"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Estado no valido. Los valores permitidos son: PENDIENTE, FINALIZADO, ENTREGADO"));
         }
 
-        Trabajo trabajo = trabajoOpt.get();
-        trabajo.setEstado(nuevoEstado);
-        Trabajo trabajoActualizado = trabajoRepository.save(trabajo);
-
-        return ResponseEntity.ok(convertirADTO(trabajoActualizado));
+        try {
+            Trabajo trabajoActualizado = trabajoService.actualizarEstado(id, nuevoEstado);
+            return ResponseEntity.ok(convertirADTO(trabajoActualizado));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        }
     }
 
     @PutMapping("/{id}/abono")
     public ResponseEntity<?> sumarAbono(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
-        Optional<Trabajo> trabajoOpt = trabajoRepository.findById(id);
-        if (trabajoOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Trabajo no encontrado con ID: " + id));
-        }
-
         Integer monto = body.get("monto");
-        if (monto == null || monto < 0) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "El campo 'monto' es requerido y debe ser mayor o igual a cero"));
+        
+        try {
+            Trabajo trabajoActualizado = trabajoService.sumarAbono(id, monto);
+            return ResponseEntity.ok(convertirADTO(trabajoActualizado));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
         }
-
-        Trabajo trabajo = trabajoOpt.get();
-        trabajo.setAbono(trabajo.getAbono() + monto);
-        Trabajo trabajoActualizado = trabajoRepository.save(trabajo);
-
-        return ResponseEntity.ok(convertirADTO(trabajoActualizado));
     }
 
     private TrabajoResponseDTO convertirADTO(Trabajo trabajo) {

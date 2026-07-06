@@ -39,7 +39,7 @@ public class WebhookService {
                         .servicio(dto.getFallaOServicio())
                         .precioTotal(dto.getPrecioTotal() != null ? dto.getPrecioTotal() : 0)
                         .abono(dto.getAbono() != null ? dto.getAbono() : 0)
-                        // Se asigna explícitamente el estado Enum a PENDIENTE según regla
+                        .costoInsumos(dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0)
                         .estado(EstadoTrabajo.PENDIENTE)
                         .build();
                 
