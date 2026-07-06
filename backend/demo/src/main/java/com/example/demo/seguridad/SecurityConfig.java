@@ -33,6 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/public/**").permitAll()
                 .requestMatchers("/api/v1/webhook/**").permitAll()
+                .requestMatchers("/api/v1/ventas/publicas").permitAll()
                 .requestMatchers("/api/v1/admin/**").authenticated()
                 .anyRequest().authenticated()
             )

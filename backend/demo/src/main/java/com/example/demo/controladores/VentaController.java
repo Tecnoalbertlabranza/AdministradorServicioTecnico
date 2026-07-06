@@ -1,0 +1,48 @@
+package com.example.demo.controladores;
+
+import com.example.demo.dto.VentaResponseDTO;
+import com.example.demo.modelos.Venta;
+import com.example.demo.repositorios.VentaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/ventas")
+@RequiredArgsConstructor
+public class VentaController {
+
+    private final VentaRepository ventaRepository;
+
+    @GetMapping("/")
+    public ResponseEntity<List<VentaResponseDTO>> listarHistorialAdmin() {
+        List<VentaResponseDTO> ventas = ventaRepository.findAll().stream()
+                .map(this::convertirADTO)
+                .toList();
+        return ResponseEntity.ok(ventas);
+    }
+
+    @GetMapping("/publicas")
+    public ResponseEntity<List<VentaResponseDTO>> listarVentasPublicas() {
+        // Se consulta estrictamente el repositorio de ventas (VentaRepository)
+        // garantizando no exponer ni hacer uso de InventarioRepository.
+        List<VentaResponseDTO> ventasPublicas = ventaRepository.findAll().stream()
+                .map(this::convertirADTO)
+                .toList();
+        return ResponseEntity.ok(ventasPublicas);
+    }
+
+    private VentaResponseDTO convertirADTO(Venta venta) {
+        return VentaResponseDTO.builder()
+                .idVenta(venta.getIdVenta())
+                .detalle(venta.getDetalle())
+                .precioVenta(venta.getPrecioVenta())
+                .canal(venta.getCanal())
+                .fechaVenta(venta.getFechaVenta())
+                .build();
+    }
+}
