@@ -53,7 +53,7 @@ public class WebhookService {
                 
                 Inventario inventario = Inventario.builder()
                         .nombre(nombreInsumo.trim())
-                        .cantidadDisponible(1)
+                        .cantidadDisponible(dto.getCantidad() != null ? dto.getCantidad() : 1)
                         .costoUnitario(dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0)
                         .build();
                 

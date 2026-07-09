@@ -28,4 +28,5 @@ public class WebhookN8nDTO {
     private String estado;
     private String plataforma;
     private String contacto;
+    private Integer cantidad;
 }
