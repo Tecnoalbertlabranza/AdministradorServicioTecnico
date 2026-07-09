@@ -48,6 +48,9 @@ public class Trabajo {
     @Column(nullable = true)
     private Integer costoInsumos;
 
+    @Column(nullable = true)
+    private String plataforma;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Timestamp fechaIngreso;

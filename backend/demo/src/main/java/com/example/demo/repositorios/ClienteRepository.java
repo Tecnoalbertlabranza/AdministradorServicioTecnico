@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
     Optional<Cliente> findByNombreIgnoreCase(String nombre);
+    Optional<Cliente> findByWhatsapp(String whatsapp);
+    Optional<Cliente> findByInstagram(String instagram);
 }

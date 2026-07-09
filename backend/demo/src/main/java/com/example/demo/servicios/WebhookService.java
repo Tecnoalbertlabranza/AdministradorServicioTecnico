@@ -30,7 +30,7 @@ public class WebhookService {
 
         switch (dto.getIntencion().toUpperCase()) {
             case "AGENDAR":
-                Cliente cliente = clienteService.obtenerOCrearCliente(dto.getCliente());
+                Cliente cliente = clienteService.obtenerOCrearCliente(dto.getCliente(), dto.getPlataforma(), dto.getContacto());
                 
                 Trabajo trabajo = Trabajo.builder()
                         .cliente(cliente)
@@ -41,6 +41,7 @@ public class WebhookService {
                         .abono(dto.getAbono() != null ? dto.getAbono() : 0)
                         .costoInsumos(dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0)
                         .estado(EstadoTrabajo.PENDIENTE)
+                        .plataforma(dto.getPlataforma())
                         .build();
                 
                 trabajoRepository.save(trabajo);
