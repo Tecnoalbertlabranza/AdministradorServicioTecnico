@@ -10,5 +10,18 @@ export const inventarioService = {
             method: 'POST',
             body: JSON.stringify(repuesto)
         });
+    },
+
+    actualizarStock: async (id, cantidadDisponible) => {
+        return await api(`/inventario/${id}/stock`, {
+            method: 'PUT',
+            body: JSON.stringify({ cantidadDisponible })
+        });
+    },
+
+    eliminarRepuesto: async (id) => {
+        return await api(`/inventario/${id}`, {
+            method: 'DELETE'
+        });
     }
 };
