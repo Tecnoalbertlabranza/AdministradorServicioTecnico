@@ -6,6 +6,7 @@ const Dashboard = () => {
   const [trabajos, setTrabajos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     cargarTrabajos();
@@ -15,14 +16,13 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      // Consumimos el endpoint real de la API
       const data = await trabajoService.obtenerTodos();
-      // Ordenar por fecha (asumiendo que los más recientes primero) si fuera necesario
-      // data.sort((a, b) => new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
+      // Ordenar por ID descendente para que los nuevos salgan primero, si existe idTrabajo
+      data.sort((a, b) => b.idTrabajo - a.idTrabajo);
       setTrabajos(data);
     } catch (err) {
       setError(err.message || 'Error al cargar los trabajos');
-      // Mock data temporal en caso de que el backend no esté corriendo aún para poder visualizar el UI
+      // Mock data temporal en caso de que el backend no esté corriendo aún
       console.log("Usando datos de prueba por fallo de conexión al backend");
       setTrabajos([
         {
@@ -51,6 +51,26 @@ const Dashboard = () => {
     }
   };
 
+  const handleEstadoChange = async (id, nuevoEstado) => {
+    try {
+      setUpdatingId(id);
+      await trabajoService.actualizarEstado(id, nuevoEstado);
+      // Refrescar los datos luego de actualizar exitosamente
+      await cargarTrabajos();
+    } catch (err) {
+      console.error("Error al actualizar estado:", err);
+      // Actualización optimista o mock si el backend falla
+      if (error) { 
+        // Estamos usando mocks, actualizamos estado local
+        setTrabajos(prev => prev.map(t => t.idTrabajo === id ? { ...t, estado: nuevoEstado } : t));
+      } else {
+        alert(err.message || "No se pudo actualizar el estado.");
+      }
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const getBadgeClass = (estado) => {
     if (!estado) return 'badge-pendiente';
     const est = estado.toLowerCase();
@@ -63,6 +83,12 @@ const Dashboard = () => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
   };
 
+  const formatDate = (isoString) => {
+    if (!isoString) return 'Sin fecha';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
   const pendientsCount = trabajos.filter(t => t.estado === 'PENDIENTE').length;
   const ingresosTotal = trabajos.reduce((sum, t) => sum + (t.abono || 0), 0);
 
@@ -70,15 +96,17 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1 className="dashboard-title">Resumen del Servicio</h1>
-        <button className="refresh-btn" onClick={cargarTrabajos} style={{
+        <button className="refresh-btn" onClick={cargarTrabajos} disabled={loading} style={{
           backgroundColor: 'var(--bg-surface)',
           border: '1px solid var(--border-color)',
           color: 'var(--text-primary)',
           padding: '0.5rem 1rem',
           borderRadius: 'var(--radius-md)',
-          fontSize: '0.875rem'
+          fontSize: '0.875rem',
+          opacity: loading ? 0.7 : 1,
+          cursor: loading ? 'wait' : 'pointer'
         }}>
-          Actualizar
+          {loading ? 'Cargando...' : 'Actualizar'}
         </button>
       </div>
 
@@ -102,7 +130,7 @@ const Dashboard = () => {
           <h2 className="data-section-title">Últimos Trabajos (Webhook n8n)</h2>
         </div>
         
-        {loading && <div className="loading-state">Cargando datos...</div>}
+        {loading && trabajos.length === 0 && <div className="loading-state">Cargando datos...</div>}
         
         {!loading && error && trabajos.length === 0 && (
           <div className="error-state">
@@ -114,40 +142,52 @@ const Dashboard = () => {
           <div className="empty-state">No hay trabajos registrados.</div>
         )}
 
-        {!loading && trabajos.length > 0 && (
-          <div className="trabajos-list">
-            {trabajos.map((trabajo) => (
-              <div key={trabajo.idTrabajo} className="trabajo-item">
-                <div className="trabajo-main-info">
-                  <span className="trabajo-device">{trabajo.equipo}</span>
-                  <span className="trabajo-client">
-                    Cliente: {trabajo.cliente ? trabajo.cliente.nombre : 'Sin registrar'}
-                  </span>
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <span className={`badge ${getBadgeClass(trabajo.estado)}`}>
-                      {trabajo.estado || 'PENDIENTE'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="trabajo-service-info" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  <p><strong>Falla/Servicio:</strong> {trabajo.servicio}</p>
-                </div>
-
-                <div className="trabajo-details">
-                  <div className="detail-row">
-                    <span>Precio Total</span>
-                    <span className="detail-value">{formatCurrency(trabajo.precioTotal)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Abono</span>
-                    <span className="detail-value" style={{ color: 'var(--accent-success)' }}>
-                      {formatCurrency(trabajo.abono)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+        {trabajos.length > 0 && (
+          <div className="table-responsive">
+            <table className="trabajos-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Equipo</th>
+                  <th>Fecha ingreso</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trabajos.map((trabajo) => (
+                  <tr key={trabajo.idTrabajo}>
+                    <td>
+                      <div className="cell-client-name">
+                        {trabajo.cliente ? trabajo.cliente.nombre : 'Sin registrar'}
+                      </div>
+                      <div className="cell-client-service">{trabajo.servicio}</div>
+                    </td>
+                    <td>
+                      <div className="cell-device">{trabajo.equipo}</div>
+                      <div className="cell-price">Abono: {formatCurrency(trabajo.abono)}</div>
+                    </td>
+                    <td>
+                      <div className="cell-date">{formatDate(trabajo.fechaIngreso)}</div>
+                    </td>
+                    <td>
+                      <div className="select-container">
+                        <select
+                          className={`status-select ${getBadgeClass(trabajo.estado)}`}
+                          value={trabajo.estado || 'PENDIENTE'}
+                          onChange={(e) => handleEstadoChange(trabajo.idTrabajo, e.target.value)}
+                          disabled={updatingId === trabajo.idTrabajo}
+                        >
+                          <option value="PENDIENTE">PENDIENTE</option>
+                          <option value="FINALIZADO">FINALIZADO</option>
+                          <option value="ENTREGADO">ENTREGADO</option>
+                        </select>
+                        {updatingId === trabajo.idTrabajo && <span className="updating-spinner">⏳</span>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
