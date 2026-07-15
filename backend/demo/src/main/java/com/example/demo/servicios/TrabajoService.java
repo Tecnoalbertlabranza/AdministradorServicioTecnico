@@ -1,7 +1,10 @@
 package com.example.demo.servicios;
 
+import com.example.demo.dto.TrabajoRequestDTO;
+import com.example.demo.modelos.Cliente;
 import com.example.demo.modelos.EstadoTrabajo;
 import com.example.demo.modelos.Trabajo;
+import com.example.demo.repositorios.ClienteRepository;
 import com.example.demo.repositorios.TrabajoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +19,7 @@ import java.util.List;
 public class TrabajoService {
 
     private final TrabajoRepository trabajoRepository;
+    private final ClienteRepository clienteRepository;
 
     public List<Trabajo> listarTodos() {
         return trabajoRepository.findAll();
@@ -64,5 +68,38 @@ public class TrabajoService {
 
         trabajo.setAbono(trabajo.getAbono() + monto);
         return trabajoRepository.save(trabajo);
+    }
+
+    @Transactional
+    public Trabajo crearTrabajoManual(TrabajoRequestDTO dto) {
+        Cliente cliente = null;
+        if (dto.getIdCliente() != null) {
+            cliente = clienteRepository.findById(dto.getIdCliente())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
+        } else if (dto.getNombreCliente() != null && !dto.getNombreCliente().trim().isEmpty()) {
+            cliente = clienteRepository.findByNombreIgnoreCase(dto.getNombreCliente().trim())
+                    .orElseGet(() -> {
+                        Cliente nuevoCliente = Cliente.builder()
+                                .nombre(dto.getNombreCliente().trim())
+                                .build();
+                        return clienteRepository.save(nuevoCliente);
+                    });
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere idCliente o nombreCliente");
+        }
+
+        Trabajo nuevoTrabajo = Trabajo.builder()
+                .cliente(cliente)
+                .equipo(dto.getEquipo())
+                .modelo(dto.getModelo() != null ? dto.getModelo() : "Generico")
+                .servicio(dto.getServicio())
+                .estado(EstadoTrabajo.PENDIENTE)
+                .precioTotal(dto.getPrecioTotal() != null ? dto.getPrecioTotal() : 0)
+                .abono(0)
+                .costoInsumos(dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0)
+                .plataforma("Local")
+                .build();
+
+        return trabajoRepository.save(nuevoTrabajo);
     }
 }

@@ -46,6 +46,16 @@ public class TrabajoController {
         return ResponseEntity.ok(trabajos);
     }
 
+    @PostMapping("/")
+    public ResponseEntity<?> crearTrabajo(@RequestBody com.example.demo.dto.TrabajoRequestDTO dto) {
+        try {
+            Trabajo nuevoTrabajo = trabajoService.crearTrabajoManual(dto);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(convertirADTO(nuevoTrabajo));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        }
+    }
+
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String nuevoEstadoStr = body.get("estado");

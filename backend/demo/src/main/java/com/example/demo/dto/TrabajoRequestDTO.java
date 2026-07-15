@@ -14,6 +14,7 @@ import java.util.UUID;
 @Builder
 public class TrabajoRequestDTO {
     private UUID idCliente;
+    private String nombreCliente; // para creación manual
     private String equipo;
     private String modelo;
     private String servicio;

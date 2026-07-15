@@ -100,7 +100,7 @@ const Dashboard = () => {
     return 'badge-pendiente';
   };
 
-  const handleGuardarTrabajo = (e) => {
+  const handleGuardarTrabajo = async (e) => {
     e.preventDefault();
     
     // Obtener costo de insumos desde inventario si seleccionó algo
@@ -112,22 +112,23 @@ const Dashboard = () => {
       }
     }
 
-    const nuevoTrabajoGuardado = {
-      idTrabajo: trabajos.length > 0 ? Math.max(...trabajos.map(t => t.idTrabajo)) + 1 : 1,
-      cliente: { nombre: newTrabajo.cliente },
+    const payload = {
+      nombreCliente: newTrabajo.cliente,
       equipo: newTrabajo.equipo,
       servicio: newTrabajo.servicio,
       precioTotal: parseFloat(newTrabajo.precioTotal) || 0,
-      costoInsumos: costoInsumoCalculado,
-      estado: 'PENDIENTE',
-      abono: 0,
-      fechaIngreso: new Date().toISOString()
+      costoInsumos: costoInsumoCalculado
     };
 
-    setTrabajos([nuevoTrabajoGuardado, ...trabajos]);
-    setIsModalOpen(false);
-    setNewTrabajo({ cliente: '', equipo: '', servicio: '', precioTotal: '', idRepuesto: '' });
-    toast.success('Trabajo creado correctamente');
+    try {
+      await trabajoService.crear(payload);
+      toast.success('Trabajo creado correctamente');
+      setIsModalOpen(false);
+      setNewTrabajo({ cliente: '', equipo: '', servicio: '', precioTotal: '', idRepuesto: '' });
+      await cargarDatos();
+    } catch (err) {
+      toast.error(err.message || 'Error al crear el trabajo');
+    }
   };
 
   // Cálculos financieros del Mes Actual
