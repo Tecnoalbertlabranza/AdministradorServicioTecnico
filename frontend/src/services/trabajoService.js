@@ -25,7 +25,8 @@ export const trabajoService = {
                             equipo: 'iPhone 13 Pro',
                             servicio: 'Cambio de pantalla y Mica de cristal',
                             estado: 'ENTREGADO',
-                            precioTotal: 85000
+                            precioTotal: 85000,
+                            costoInsumos: 30000
                         },
                         {
                             idTrabajo: 102,
@@ -33,7 +34,8 @@ export const trabajoService = {
                             equipo: 'MacBook Air M1',
                             servicio: 'Mantenimiento y limpieza de polvo',
                             estado: 'FINALIZADO',
-                            precioTotal: 35000
+                            precioTotal: 35000,
+                            costoInsumos: 5000
                         }
                     ]);
                 } else if (idCliente === '2') {
@@ -44,7 +46,8 @@ export const trabajoService = {
                             equipo: 'Samsung Galaxy S22',
                             servicio: 'Reemplazo de puerto de carga',
                             estado: 'PENDIENTE',
-                            precioTotal: 25000
+                            precioTotal: 25000,
+                            costoInsumos: 10000
                         }
                     ]);
                 } else {
