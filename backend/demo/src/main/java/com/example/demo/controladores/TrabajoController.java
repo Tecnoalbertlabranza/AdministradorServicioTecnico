@@ -57,7 +57,7 @@ public class TrabajoController {
         try {
             nuevoEstado = EstadoTrabajo.valueOf(nuevoEstadoStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Estado no valido. Los valores permitidos son: PENDIENTE, FINALIZADO, ENTREGADO"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Estado no valido. Los valores permitidos son: PENDIENTE, EN_REVISION, ESPERANDO_REPUESTO, FINALIZADO, ENTREGADO"));
         }
 
         try {

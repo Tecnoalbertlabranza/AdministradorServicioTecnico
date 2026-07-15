@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
+import Trabajos from './pages/Trabajos';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
 import Clientes from './pages/Clientes';
@@ -13,6 +14,8 @@ function App() {
     switch (currentView) {
       case 'dashboard':
         return <Dashboard />;
+      case 'trabajos':
+        return <Trabajos />;
       case 'clientes':
         return <Clientes />;
       case 'inventario':

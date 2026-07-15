@@ -8,6 +8,7 @@ const MainLayout = ({ children, currentView, setView }) => {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+    { id: 'trabajos', label: 'Trabajos', icon: '🛠️' },
     { id: 'clientes', label: 'Clientes', icon: '👥' },
     { id: 'inventario', label: 'Inventario', icon: '📦' },
     { id: 'ventas', label: 'Ventas', icon: '💰' },
