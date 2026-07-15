@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './layouts/MainLayout';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Trabajos from './pages/Trabajos';
 import Inventario from './pages/Inventario';
@@ -8,29 +11,35 @@ import Clientes from './pages/Clientes';
 import './App.css';
 
 function App() {
-  const [currentView, setCurrentView] = useState('dashboard');
-
-  const renderView = () => {
-    switch (currentView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'trabajos':
-        return <Trabajos />;
-      case 'clientes':
-        return <Clientes />;
-      case 'inventario':
-        return <Inventario />;
-      case 'ventas':
-        return <Ventas />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
-    <MainLayout currentView={currentView} setView={setCurrentView}>
-      {renderView()}
-    </MainLayout>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Ruta Pública */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Rutas Protegidas (envueltas en MainLayout) */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="trabajos" element={<Trabajos />} />
+            <Route path="clientes" element={<Clientes />} />
+            <Route path="inventario" element={<Inventario />} />
+            <Route path="ventas" element={<Ventas />} />
+          </Route>
+
+          {/* Catch-all para URLs no encontradas */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -1,24 +1,38 @@
 import { useState } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './MainLayout.css';
 
-const MainLayout = ({ children, currentView, setView }) => {
+const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'trabajos', label: 'Trabajos', icon: '🛠️' },
-    { id: 'clientes', label: 'Clientes', icon: '👥' },
-    { id: 'inventario', label: 'Inventario', icon: '📦' },
-    { id: 'ventas', label: 'Ventas', icon: '💰' },
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/dashboard' },
+    { id: 'trabajos', label: 'Trabajos', icon: '🛠️', path: '/trabajos' },
+    { id: 'clientes', label: 'Clientes', icon: '👥', path: '/clientes' },
+    { id: 'inventario', label: 'Inventario', icon: '📦', path: '/inventario' },
+    { id: 'ventas', label: 'Ventas', icon: '💰', path: '/ventas' },
   ];
 
-  const handleNavClick = (id) => {
-    setView(id);
+  // Helper para saber qué vista está activa
+  const currentPath = location.pathname;
+  const currentViewItem = menuItems.find(item => currentPath.startsWith(item.path)) || menuItems[0];
+
+  const handleNavClick = (path) => {
+    navigate(path);
     if (window.innerWidth <= 768) {
       setIsSidebarOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -44,8 +58,8 @@ const MainLayout = ({ children, currentView, setView }) => {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              className={`nav-item ${currentView === item.id ? 'active' : ''}`}
-              onClick={() => handleNavClick(item.id)}
+              className={`nav-item ${currentPath.startsWith(item.path) ? 'active' : ''}`}
+              onClick={() => handleNavClick(item.path)}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
@@ -63,17 +77,35 @@ const MainLayout = ({ children, currentView, setView }) => {
           </button>
           <div className="navbar-title">
             <h3 style={{ margin: 0, fontWeight: 500, color: 'var(--text-secondary)' }}>
-              {menuItems.find(i => i.id === currentView)?.label || 'Panel'}
+              {currentViewItem.label}
             </h3>
           </div>
-          <div className="navbar-profile">
+          <div className="navbar-profile" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              onClick={handleLogout} 
+              className="btn-logout"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)',
+                padding: '0.4rem 0.8rem',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                transition: 'var(--transition)'
+              }}
+              onMouseEnter={(e) => { e.target.style.color = 'var(--accent-danger)'; e.target.style.borderColor = 'var(--accent-danger)'; }}
+              onMouseLeave={(e) => { e.target.style.color = 'var(--text-secondary)'; e.target.style.borderColor = 'var(--border-color)'; }}
+            >
+              Cerrar Sesión 🚪
+            </button>
             <div className="avatar">A</div>
           </div>
         </header>
 
         {/* Content */}
         <div className="content-wrapper">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>
