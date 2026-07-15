@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { trabajoService } from '../services/trabajoService';
 import { inventarioService } from '../services/inventarioService';
+import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -72,7 +73,7 @@ const Dashboard = () => {
       setUpdatingId(id);
       await trabajoService.actualizarEstado(id, nuevoEstado);
       // Refrescar los datos luego de actualizar exitosamente
-      await cargarTrabajos();
+      await cargarDatos();
     } catch (err) {
       console.error("Error al actualizar estado:", err);
       // Actualización optimista o mock si el backend falla
@@ -93,16 +94,6 @@ const Dashboard = () => {
     if (est === 'finalizado') return 'badge-finalizado';
     if (est === 'entregado') return 'badge-entregado';
     return 'badge-pendiente';
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
-  };
-
-  const formatDate = (isoString) => {
-    if (!isoString) return 'Sin fecha';
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   const handleGuardarTrabajo = (e) => {
@@ -174,17 +165,17 @@ const Dashboard = () => {
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-label">Ingresos del Mes</span>
-          <span className="stat-value">{formatCurrency(ingresosMes)}</span>
+          <span className="stat-value">{formatearMoneda(ingresosMes)}</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Gastos del Mes (Insumos)</span>
           <span className="stat-value" style={{ color: 'var(--accent-danger)' }}>
-            -{formatCurrency(gastosMes)}
+            -{formatearMoneda(gastosMes)}
           </span>
         </div>
         <div className="stat-card" style={{ borderColor: 'var(--accent-success)', backgroundColor: 'rgba(16, 185, 129, 0.05)' }}>
           <span className="stat-label" style={{ color: 'var(--accent-success)' }}>Ganancia Neta</span>
-          <span className="stat-value" style={{ color: 'var(--accent-success)' }}>{formatCurrency(gananciaNeta)}</span>
+          <span className="stat-value" style={{ color: 'var(--accent-success)' }}>{formatearMoneda(gananciaNeta)}</span>
         </div>
       </div>
 
@@ -227,10 +218,10 @@ const Dashboard = () => {
                     </td>
                     <td>
                       <div className="cell-device">{trabajo.equipo}</div>
-                      <div className="cell-price">Abono: {formatCurrency(trabajo.abono)}</div>
+                      <div className="cell-price">Abono: {formatearMoneda(trabajo.abono)}</div>
                     </td>
                     <td>
-                      <div className="cell-date">{formatDate(trabajo.fechaIngreso)}</div>
+                      <div className="cell-date">{formatearFecha(trabajo.fechaIngreso)}</div>
                     </td>
                     <td>
                       <div className="select-container">

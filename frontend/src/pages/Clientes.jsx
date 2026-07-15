@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { clienteService } from '../services/clienteService';
 import { trabajoService } from '../services/trabajoService';
+import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import './Clientes.css';
 import './Inventario.css'; // Reutilizamos estilos modales y tablas
@@ -113,16 +114,6 @@ const Clientes = () => {
     setSelectedCliente(null);
     setHistorialTrabajos([]);
     setErrorHistorial(null);
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
-  };
-
-  const formatDate = (isoString) => {
-    if (!isoString) return 'Sin fecha';
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   const getEstadoBadgeClass = (estado) => {
@@ -325,7 +316,7 @@ const Clientes = () => {
                       {historialTrabajos.map(trabajo => (
                         <tr key={trabajo.idTrabajo}>
                           <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{trabajo.idTrabajo}</td>
-                          <td>{formatDate(trabajo.fechaIngreso)}</td>
+                          <td>{formatearFecha(trabajo.fechaIngreso)}</td>
                           <td>
                             <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.equipo}</div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{trabajo.servicio || trabajo.falla}</div>
@@ -336,7 +327,7 @@ const Clientes = () => {
                             </span>
                           </td>
                           <td style={{ fontWeight: '600', color: 'var(--accent-success)' }}>
-                            {formatCurrency(trabajo.precioTotal)}
+                            {formatearMoneda(trabajo.precioTotal)}
                           </td>
                         </tr>
                       ))}

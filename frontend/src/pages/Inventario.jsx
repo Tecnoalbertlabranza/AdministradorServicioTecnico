@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { inventarioService } from '../services/inventarioService';
+import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import './Inventario.css';
 
@@ -133,16 +134,6 @@ const Inventario = () => {
     alert("Próximamente: Se abrirá modal para añadir un nuevo repuesto");
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
-  };
-
-  const formatDate = (isoString) => {
-    if (!isoString) return 'Sin fecha';
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
   const getStockClass = (cantidad) => {
     if (cantidad <= 0) return 'stock-critical';
     if (cantidad <= 5) return 'stock-low';
@@ -229,10 +220,10 @@ const Inventario = () => {
                       </div>
                     </td>
                     <td>
-                      <div className="item-price">{formatCurrency(item.costoUnitario)}</div>
+                      <div className="item-price">{formatearMoneda(item.costoUnitario)}</div>
                     </td>
                     <td>
-                      <div className="item-date">{formatDate(item.ultimaReposicion)}</div>
+                      <div className="item-date">{formatearFecha(item.ultimaReposicion)}</div>
                     </td>
                     <td>
                       <div className="actions-cell">

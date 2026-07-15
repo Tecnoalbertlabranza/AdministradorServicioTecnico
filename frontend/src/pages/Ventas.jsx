@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ventaService } from '../services/ventaService';
+import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import './Ventas.css';
 
@@ -53,16 +54,6 @@ const Ventas = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
-  };
-
-  const formatDate = (isoString) => {
-    if (!isoString) return 'Sin fecha';
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
   const handleNuevaVenta = () => {
@@ -152,7 +143,7 @@ const Ventas = () => {
                       <span className="cell-id">#{venta.idVenta}</span>
                     </td>
                     <td>
-                      <div className="item-date">{formatDate(venta.fechaVenta)}</div>
+                      <div className="item-date">{formatearFecha(venta.fechaVenta)}</div>
                     </td>
                     <td>
                       <div className="cell-detail">{venta.detalle}</div>
@@ -162,7 +153,7 @@ const Ventas = () => {
                     </td>
                     <td>
                       <div className="item-price" style={{ color: 'var(--accent-success)' }}>
-                        {formatCurrency(venta.precioVenta)}
+                        {formatearMoneda(venta.precioVenta)}
                       </div>
                     </td>
                     <td>

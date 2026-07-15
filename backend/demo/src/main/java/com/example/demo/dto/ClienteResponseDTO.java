@@ -17,5 +17,6 @@ public class ClienteResponseDTO {
     private String nombre;
     private String whatsapp;
     private String instagram;
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Timestamp fechaRegistro;
 }

@@ -22,6 +22,9 @@ public class TrabajoResponseDTO {
     private Integer precioTotal;
     private Integer abono;
     private Integer costoInsumos;
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Timestamp fechaIngreso;
+    
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Timestamp fechaActualizacion;
 }

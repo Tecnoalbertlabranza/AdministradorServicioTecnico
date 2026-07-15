@@ -16,5 +16,6 @@ public class VentaResponseDTO {
     private String detalle;
     private Integer precioVenta;
     private String canal;
+    @com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Timestamp fechaVenta;
 }

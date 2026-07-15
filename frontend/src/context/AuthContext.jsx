@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -12,33 +13,41 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Verificar si hay sesión en localStorage al cargar la app
-    const session = localStorage.getItem('tecnoadmin_session');
-    if (session === 'true') {
+    const token = localStorage.getItem('token');
+    if (token) {
       setIsAuthenticated(true);
     }
     setLoading(false);
+
+    // Escuchar evento de token expirado (lanzado por axios interceptor en api.js)
+    const handleUnauthorized = () => {
+      logout();
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (username, password) => {
-    // TODO: Reemplazar validación mockeada por llamada POST a la API de Spring Boot
-    // Ejemplo: const response = await api.post('/auth/login', { username, password });
-    
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (username === 'admin' && password === 'admin123') {
-          setIsAuthenticated(true);
-          localStorage.setItem('tecnoadmin_session', 'true');
-          resolve({ success: true });
-        } else {
-          reject(new Error('Credenciales incorrectas'));
-        }
-      }, 500); // Simular latencia de red
-    });
+    try {
+      const response = await authService.login(username, password);
+      if (response && response.jwt) {
+        setIsAuthenticated(true);
+        localStorage.setItem('token', response.jwt);
+        return { success: true };
+      } else {
+        throw new Error('Respuesta del servidor inválida');
+      }
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('tecnoadmin_session');
+    localStorage.removeItem('token');
   };
 
   const value = {

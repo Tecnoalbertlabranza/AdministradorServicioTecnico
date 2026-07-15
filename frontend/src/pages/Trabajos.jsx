@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { trabajoService } from '../services/trabajoService';
+import { formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import './Trabajos.css';
 
@@ -96,12 +97,6 @@ const Trabajos = () => {
     }
   };
 
-  const formatDate = (isoString) => {
-    if (!isoString) return '';
-    const date = new Date(isoString);
-    return date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
-  };
-
   return (
     <div className="layout-page-container">
       <div className="trabajos-header">
@@ -155,7 +150,7 @@ const Trabajos = () => {
                             >
                               <div className="card-header">
                                 <span className="card-id">#{trabajo.idTrabajo}</span>
-                                <span className="card-date">{formatDate(trabajo.fechaIngreso)}</span>
+                                <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
                               </div>
                               <h4 className="card-equipo">{trabajo.equipo}</h4>
                               <div className="card-cliente">{trabajo.cliente?.nombre || 'Sin registrar'}</div>

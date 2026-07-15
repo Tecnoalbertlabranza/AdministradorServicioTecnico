@@ -38,7 +38,7 @@ public class AuthController {
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new Exception("Usuario o contraseña incorrectos", e);
+            return ResponseEntity.status(401).body(java.util.Map.of("error", "Usuario o contraseña incorrectos"));
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
