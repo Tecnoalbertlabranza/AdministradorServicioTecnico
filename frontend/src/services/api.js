@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
@@ -33,6 +34,7 @@ apiClient.interceptors.response.use(
     (error) => {
         if (!error.response) {
             console.error("[Network Error] No se pudo conectar al servidor.");
+            toast.error("Error de conexión con el servidor");
             return Promise.reject(new Error("Error de conexión: El servidor no responde o no tienes internet."));
         }
 
@@ -41,6 +43,12 @@ apiClient.interceptors.response.use(
         const errorMessage = errorData.error || errorData.message || `Error HTTP: ${status}`;
 
         console.error(`[API Error] ${error.config.url}:`, errorMessage);
+        
+        // No mostrar toast para 401 si viene de Login, ya que Login lo maneja o queremos silenciarlo.
+        // Pero para otros, sí podemos mostrarlo globalmente si lo deseamos.
+        if (status !== 401) {
+            toast.error(errorMessage);
+        }
 
         if (status === 401) {
             console.warn("Sesión expirada o no autorizada. Limpiando token...");

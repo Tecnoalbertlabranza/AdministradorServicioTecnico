@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ventaService } from '../services/ventaService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
+import { toast } from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
 import './Ventas.css';
 
@@ -57,11 +59,11 @@ const Ventas = () => {
   };
 
   const handleNuevaVenta = () => {
-    alert("Próximamente: Se abrirá modal para registrar una nueva venta o ingreso");
+    toast('Próximamente: Se abrirá modal para registrar una nueva venta o ingreso', { icon: '🚧' });
   };
 
   const handleVerDetalle = (id) => {
-    alert(`Próximamente: Mostrando detalle completo de la venta #${id}`);
+    toast(`Próximamente: Mostrando detalle completo de la venta #${id}`, { icon: '🚧' });
   };
 
   const filteredVentas = ventas.filter(v => {
@@ -107,7 +109,7 @@ const Ventas = () => {
           />
         </div>
 
-        {loading && ventas.length === 0 && <div className="loading-state">Cargando ventas...</div>}
+        {loading && ventas.length === 0 && <Spinner text="Cargando ventas..." />}
         
         {!loading && error && ventas.length === 0 && (
           <div className="error-state">

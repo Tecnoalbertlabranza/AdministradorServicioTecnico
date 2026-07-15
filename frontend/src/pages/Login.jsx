@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 import './Login.css';
 
 const Login = () => {
@@ -19,9 +20,12 @@ const Login = () => {
 
     try {
       await login(username, password);
+      toast.success('¡Sesión iniciada con éxito!');
       navigate('/dashboard'); // Redirigir si fue exitoso
     } catch (err) {
-      setError(err.message || 'Error al iniciar sesión');
+      const msg = err.message || 'Error al iniciar sesión';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

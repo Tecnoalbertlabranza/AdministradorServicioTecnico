@@ -3,6 +3,7 @@ import { clienteService } from '../services/clienteService';
 import { trabajoService } from '../services/trabajoService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
+import Spinner from '../components/Spinner';
 import './Clientes.css';
 import './Inventario.css'; // Reutilizamos estilos modales y tablas
 
@@ -202,7 +203,7 @@ const Clientes = () => {
           />
         </div>
 
-        {loading && clientes.length === 0 && <div className="loading-state">Cargando clientes...</div>}
+        {loading && clientes.length === 0 && <Spinner text="Cargando directorio de clientes..." />}
         
         {!loading && error && clientes.length === 0 && (
           <div className="error-state">
@@ -274,11 +275,7 @@ const Clientes = () => {
               </p>
               
               {loadingHistorial && (
-                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ display: 'inline-block', border: '3px solid rgba(59, 130, 246, 0.2)', borderTop: '3px solid var(--accent-primary)', borderRadius: '50%', width: '30px', height: '30px', animation: 'spin 1s linear infinite', marginBottom: '1rem' }}></div>
-                  <div>Cargando historial...</div>
-                  <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                </div>
+                <Spinner text="Cargando historial..." />
               )}
 
               {!loadingHistorial && errorHistorial && (

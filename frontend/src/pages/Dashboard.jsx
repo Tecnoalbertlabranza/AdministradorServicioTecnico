@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { trabajoService } from '../services/trabajoService';
 import { inventarioService } from '../services/inventarioService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
+import { toast } from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -72,6 +74,7 @@ const Dashboard = () => {
     try {
       setUpdatingId(id);
       await trabajoService.actualizarEstado(id, nuevoEstado);
+      toast.success(`Estado actualizado a ${nuevoEstado}`);
       // Refrescar los datos luego de actualizar exitosamente
       await cargarDatos();
     } catch (err) {
@@ -80,8 +83,9 @@ const Dashboard = () => {
       if (error) { 
         // Estamos usando mocks, actualizamos estado local
         setTrabajos(prev => prev.map(t => t.idTrabajo === id ? { ...t, estado: nuevoEstado } : t));
+        toast.success(`(Modo Prueba) Estado actualizado a ${nuevoEstado}`);
       } else {
-        alert(err.message || "No se pudo actualizar el estado.");
+        toast.error(err.message || "No se pudo actualizar el estado.");
       }
     } finally {
       setUpdatingId(null);
@@ -123,6 +127,7 @@ const Dashboard = () => {
     setTrabajos([nuevoTrabajoGuardado, ...trabajos]);
     setIsModalOpen(false);
     setNewTrabajo({ cliente: '', equipo: '', servicio: '', precioTotal: '', idRepuesto: '' });
+    toast.success('Trabajo creado correctamente');
   };
 
   // Cálculos financieros del Mes Actual
@@ -184,13 +189,15 @@ const Dashboard = () => {
           <h2 className="data-section-title">Últimos Trabajos (Webhook n8n)</h2>
         </div>
         
-        {loading && trabajos.length === 0 && <div className="loading-state">Cargando datos...</div>}
-        
-        {!loading && error && trabajos.length === 0 && (
-          <div className="error-state">
-            <p>{error}</p>
-          </div>
-        )}
+        {loading && trabajos.length === 0 ? (
+          <Spinner text="Cargando resumen de trabajos..." />
+        ) : (
+          <>
+            {!loading && error && trabajos.length === 0 && (
+              <div className="error-state">
+                <p>{error}</p>
+              </div>
+            )}
 
         {!loading && trabajos.length === 0 && !error && (
           <div className="empty-state">No hay trabajos registrados.</div>
@@ -243,6 +250,8 @@ const Dashboard = () => {
               </tbody>
             </table>
           </div>
+        )}
+        </>
         )}
       </div>
 

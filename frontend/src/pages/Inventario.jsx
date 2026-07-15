@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { inventarioService } from '../services/inventarioService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
+import { toast } from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
 import './Inventario.css';
 
@@ -73,6 +75,7 @@ const Inventario = () => {
     try {
       setIsDeleting(true);
       await inventarioService.eliminarRepuesto(deletingItem.idRepuesto);
+      toast.success('Repuesto eliminado correctamente');
       
       // Refresco dinámico de la UI (eliminar del estado local)
       setInventario(prev => prev.filter(i => i.idRepuesto !== deletingItem.idRepuesto));
@@ -83,9 +86,10 @@ const Inventario = () => {
         // Mock mode: simulamos la eliminación exitosa localmente
         setInventario(prev => prev.filter(i => i.idRepuesto !== deletingItem.idRepuesto));
         handleCloseDeleteModal();
+        toast.success('(Modo Prueba) Repuesto eliminado');
       } else {
         // Mostrar alerta clara de error
-        alert(err.message || 'Error: No se pudo eliminar el repuesto (podría estar asociado a un trabajo).');
+        toast.error(err.message || 'Error: No se pudo eliminar el repuesto (podría estar asociado a un trabajo).');
       }
     } finally {
       setIsDeleting(false);
@@ -109,6 +113,7 @@ const Inventario = () => {
     try {
       setIsSaving(true);
       await inventarioService.actualizarStock(editingItem.idRepuesto, parseInt(newStock, 10));
+      toast.success('Stock actualizado correctamente');
       
       // Refresco dinámico de UI (actualizar estado local) para ser súper rápido
       setInventario(prev => prev.map(i => i.idRepuesto === editingItem.idRepuesto ? { ...i, cantidadDisponible: parseInt(newStock, 10) } : i));
@@ -122,8 +127,9 @@ const Inventario = () => {
         // Mock mode
         setInventario(prev => prev.map(i => i.idRepuesto === editingItem.idRepuesto ? { ...i, cantidadDisponible: parseInt(newStock, 10) } : i));
         handleCloseEditModal();
+        toast.success('(Modo Prueba) Stock actualizado');
       } else {
-        alert(err.message || 'No se pudo actualizar el stock.');
+        toast.error(err.message || 'No se pudo actualizar el stock.');
       }
     } finally {
       setIsSaving(false);
@@ -131,7 +137,7 @@ const Inventario = () => {
   };
 
   const handleNuevoIngreso = () => {
-    alert("Próximamente: Se abrirá modal para añadir un nuevo repuesto");
+    toast('Próximamente: Se abrirá modal para añadir un nuevo repuesto', { icon: '🚧' });
   };
 
   const getStockClass = (cantidad) => {
@@ -180,7 +186,7 @@ const Inventario = () => {
           />
         </div>
         
-        {loading && inventario.length === 0 && <div className="loading-state">Cargando inventario...</div>}
+        {loading && inventario.length === 0 && <Spinner text="Cargando inventario..." />}
         
         {!loading && error && inventario.length === 0 && (
           <div className="error-state">

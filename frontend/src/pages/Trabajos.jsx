@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { trabajoService } from '../services/trabajoService';
 import { formatearFecha } from '../utils/formatters';
+import { toast } from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
 import './Trabajos.css';
 
@@ -91,9 +93,14 @@ const Trabajos = () => {
 
     // Si cambió de columna, enviar al servidor
     if (sourceColumnId !== destColumnId) {
-      // TODO: Llamar al endpoint PATCH del backend justo donde debería ir la petición para actualizar el estado en la base de datos real en el futuro.
-      // Ejemplo: await trabajoService.actualizarEstado(movedItem.idTrabajo, destColumnId);
-      console.log(`Simulando PATCH /api/trabajos/${movedItem.idTrabajo}/estado con nuevo estado: ${destColumnId}`);
+      try {
+        await trabajoService.actualizarEstado(movedItem.idTrabajo, destColumnId);
+        toast.success(`Trabajo movido a ${COLUMNAS_ESTADOS.find(c => c.id === destColumnId).titulo}`);
+      } catch (err) {
+        // Revertir en caso de error
+        toast.error('Error al actualizar el estado. Se revirtió el cambio.');
+        cargarTrabajos(); // recargar para recuperar el estado original
+      }
     }
   };
 
@@ -116,58 +123,62 @@ const Trabajos = () => {
 
       {error && <div className="error-state">{error}</div>}
 
-      <div className="kanban-scroll-container">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="kanban-board">
-            {COLUMNAS_ESTADOS.map((columna) => (
-              <div key={columna.id} className="kanban-column">
-                <div className="kanban-column-header" style={{ borderTop: `3px solid ${columna.color}` }}>
-                  <h3>{columna.titulo}</h3>
-                  <span className="kanban-column-count">
-                    {columnsData[columna.id]?.length || 0}
-                  </span>
-                </div>
-                
-                <Droppable droppableId={columna.id}>
-                  {(provided, snapshot) => (
-                    <div 
-                      className={`kanban-droppable-area ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                    >
-                      {columnsData[columna.id]?.map((trabajo, index) => (
-                        <Draggable 
-                          key={trabajo.idTrabajo.toString()} 
-                          draggableId={trabajo.idTrabajo.toString()} 
-                          index={index}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              className={`kanban-card ${snapshot.isDragging ? 'is-dragging' : ''}`}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <div className="card-header">
-                                <span className="card-id">#{trabajo.idTrabajo}</span>
-                                <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
+      {loading && trabajos.length === 0 ? (
+        <Spinner text="Cargando tablero kanban..." />
+      ) : (
+        <div className="kanban-scroll-container">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="kanban-board">
+              {COLUMNAS_ESTADOS.map((columna) => (
+                <div key={columna.id} className="kanban-column">
+                  <div className="kanban-column-header" style={{ borderTop: `3px solid ${columna.color}` }}>
+                    <h3>{columna.titulo}</h3>
+                    <span className="kanban-column-count">
+                      {columnsData[columna.id]?.length || 0}
+                    </span>
+                  </div>
+                  
+                  <Droppable droppableId={columna.id}>
+                    {(provided, snapshot) => (
+                      <div 
+                        className={`kanban-droppable-area ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        {columnsData[columna.id]?.map((trabajo, index) => (
+                          <Draggable 
+                            key={trabajo.idTrabajo.toString()} 
+                            draggableId={trabajo.idTrabajo.toString()} 
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                className={`kanban-card ${snapshot.isDragging ? 'is-dragging' : ''}`}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                <div className="card-header">
+                                  <span className="card-id">#{trabajo.idTrabajo}</span>
+                                  <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
+                                </div>
+                                <h4 className="card-equipo">{trabajo.equipo}</h4>
+                                <div className="card-cliente">{trabajo.cliente?.nombre || 'Sin registrar'}</div>
+                                <div className="card-servicio">{trabajo.servicio}</div>
                               </div>
-                              <h4 className="card-equipo">{trabajo.equipo}</h4>
-                              <div className="card-cliente">{trabajo.cliente?.nombre || 'Sin registrar'}</div>
-                              <div className="card-servicio">{trabajo.servicio}</div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </div>
+              ))}
+            </div>
+          </DragDropContext>
+        </div>
+      )}
     </div>
   );
 };
