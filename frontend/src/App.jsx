@@ -3,6 +3,7 @@ import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
+import Clientes from './pages/Clientes';
 import './App.css';
 
 function App() {
@@ -13,7 +14,7 @@ function App() {
       case 'dashboard':
         return <Dashboard />;
       case 'clientes':
-        return <div style={{ color: 'var(--text-secondary)' }}>Módulo de Clientes en construcción...</div>;
+        return <Clientes />;
       case 'inventario':
         return <Inventario />;
       case 'ventas':
