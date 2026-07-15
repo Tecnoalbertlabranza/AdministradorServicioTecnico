@@ -2,6 +2,7 @@ import { useState } from 'react';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Inventario from './pages/Inventario';
+import Ventas from './pages/Ventas';
 import './App.css';
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
       case 'inventario':
         return <Inventario />;
       case 'ventas':
-        return <div style={{ color: 'var(--text-secondary)' }}>Módulo de Ventas en construcción...</div>;
+        return <Ventas />;
       default:
         return <Dashboard />;
     }
