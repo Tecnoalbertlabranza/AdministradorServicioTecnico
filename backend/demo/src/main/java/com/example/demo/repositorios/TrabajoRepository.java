@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TrabajoRepository extends JpaRepository<Trabajo, Long> {
+    java.util.List<Trabajo> findByCliente_IdCliente(java.util.UUID idCliente);
 }

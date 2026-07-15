@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { clienteService } from '../services/clienteService';
+import { trabajoService } from '../services/trabajoService';
+import SearchBar from '../components/SearchBar';
 import './Clientes.css';
 import './Inventario.css'; // Reutilizamos estilos modales y tablas
 
@@ -33,8 +35,14 @@ const Clientes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Estado para la barra de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Estado para el modal de historial
   const [selectedCliente, setSelectedCliente] = useState(null);
+  const [historialTrabajos, setHistorialTrabajos] = useState([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
+  const [errorHistorial, setErrorHistorial] = useState(null);
 
   useEffect(() => {
     cargarClientes();
@@ -81,12 +89,49 @@ const Clientes = () => {
     }
   };
 
-  const handleVerPedidos = (cliente) => {
+  const handleVerPedidos = async (cliente) => {
     setSelectedCliente(cliente);
+    setLoadingHistorial(true);
+    setErrorHistorial(null);
+    setHistorialTrabajos([]);
+
+    try {
+      const trabajos = await trabajoService.obtenerPorCliente(cliente.idCliente);
+      // Ordenar por fecha de ingreso descendente
+      trabajos.sort((a, b) => new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
+      setHistorialTrabajos(trabajos);
+    } catch (err) {
+      setErrorHistorial(err.message || 'Error al obtener el historial de pedidos.');
+      console.error(err);
+      setHistorialTrabajos([]);
+    } finally {
+      setLoadingHistorial(false);
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedCliente(null);
+    setHistorialTrabajos([]);
+    setErrorHistorial(null);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount || 0);
+  };
+
+  const formatDate = (isoString) => {
+    if (!isoString) return 'Sin fecha';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const getEstadoBadgeClass = (estado) => {
+    switch(estado) {
+      case 'PENDIENTE': return 'status-badge status-pendiente';
+      case 'FINALIZADO': return 'status-badge status-finalizado';
+      case 'ENTREGADO': return 'status-badge status-entregado';
+      default: return 'status-badge';
+    }
   };
 
   const getContactInfo = (cliente) => {
@@ -130,6 +175,10 @@ const Clientes = () => {
     return <span className="channel-badge" style={{ backgroundColor: 'transparent', color: 'var(--text-muted)' }}>Desconocido</span>;
   };
 
+  const filteredClientes = clientes.filter(c => 
+    c.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="dashboard-container">
       <div className="clientes-header">
@@ -154,6 +203,14 @@ const Clientes = () => {
           </button>
         </div>
         
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+          <SearchBar 
+            placeholder="Buscar cliente por nombre..." 
+            value={searchTerm} 
+            onChange={setSearchTerm} 
+          />
+        </div>
+
         {loading && clientes.length === 0 && <div className="loading-state">Cargando clientes...</div>}
         
         {!loading && error && clientes.length === 0 && (
@@ -166,7 +223,11 @@ const Clientes = () => {
           <div className="empty-state">No hay clientes registrados aún.</div>
         )}
 
-        {clientes.length > 0 && (
+        {!loading && clientes.length > 0 && filteredClientes.length === 0 && (
+          <div className="empty-state">No se encontraron clientes que coincidan con la búsqueda.</div>
+        )}
+
+        {filteredClientes.length > 0 && (
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -178,7 +239,7 @@ const Clientes = () => {
                 </tr>
               </thead>
               <tbody>
-                {clientes.map((cliente) => (
+                {filteredClientes.map((cliente) => (
                   <tr key={cliente.idCliente}>
                     <td>
                       <div className="item-name">{cliente.nombre}</div>
@@ -210,28 +271,79 @@ const Clientes = () => {
       {/* Modal Historial de Pedidos */}
       {selectedCliente && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Historial de Pedidos</h3>
               <button className="btn-close" onClick={handleCloseModal}>✕</button>
             </div>
             
-            <div className="modal-body">
-              <p style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <p style={{ color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
                 Mostrando trabajos de <strong>{selectedCliente.nombre}</strong>.
               </p>
               
-              <div style={{
-                backgroundColor: 'rgba(19, 27, 44, 0.5)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: '1.5rem',
-                textAlign: 'center',
-                color: 'var(--text-secondary)'
-              }}>
-                <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>🚧</span>
-                Módulo en construcción. Aquí se listarán todas las reparaciones y ventas asociadas a este cliente.
-              </div>
+              {loadingHistorial && (
+                <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'inline-block', border: '3px solid rgba(59, 130, 246, 0.2)', borderTop: '3px solid var(--accent-primary)', borderRadius: '50%', width: '30px', height: '30px', animation: 'spin 1s linear infinite', marginBottom: '1rem' }}></div>
+                  <div>Cargando historial...</div>
+                  <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                </div>
+              )}
+
+              {!loadingHistorial && errorHistorial && (
+                <div className="error-state" style={{ padding: '2rem 1rem' }}>
+                  {errorHistorial}
+                </div>
+              )}
+
+              {!loadingHistorial && !errorHistorial && historialTrabajos.length === 0 && (
+                <div style={{
+                  backgroundColor: 'rgba(19, 27, 44, 0.3)',
+                  border: '1px dashed var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '3rem 1rem',
+                  textAlign: 'center',
+                  color: 'var(--text-secondary)'
+                }}>
+                  Este cliente aún no tiene pedidos registrados.
+                </div>
+              )}
+
+              {!loadingHistorial && !errorHistorial && historialTrabajos.length > 0 && (
+                <div className="table-responsive" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Equipo / Falla</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historialTrabajos.map(trabajo => (
+                        <tr key={trabajo.idTrabajo}>
+                          <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{trabajo.idTrabajo}</td>
+                          <td>{formatDate(trabajo.fechaIngreso)}</td>
+                          <td>
+                            <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.equipo}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{trabajo.servicio || trabajo.falla}</div>
+                          </td>
+                          <td>
+                            <span className={getEstadoBadgeClass(trabajo.estado)}>
+                              {trabajo.estado}
+                            </span>
+                          </td>
+                          <td style={{ fontWeight: '600', color: 'var(--accent-success)' }}>
+                            {formatCurrency(trabajo.precioTotal)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
             
             <div className="modal-footer">

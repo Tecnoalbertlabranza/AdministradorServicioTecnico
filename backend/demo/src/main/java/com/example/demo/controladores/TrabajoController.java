@@ -38,6 +38,14 @@ public class TrabajoController {
         }
     }
 
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<TrabajoResponseDTO>> obtenerPorCliente(@PathVariable java.util.UUID idCliente) {
+        List<TrabajoResponseDTO> trabajos = trabajoService.obtenerTrabajosPorCliente(idCliente).stream()
+                .map(this::convertirADTO)
+                .toList();
+        return ResponseEntity.ok(trabajos);
+    }
+
     @PutMapping("/{id}/estado")
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String nuevoEstadoStr = body.get("estado");

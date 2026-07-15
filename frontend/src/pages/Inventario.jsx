@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { inventarioService } from '../services/inventarioService';
+import SearchBar from '../components/SearchBar';
 import './Inventario.css';
 
 const Inventario = () => {
@@ -7,6 +8,9 @@ const Inventario = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Estado para la búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Estados para el Modal de Edición
   const [editingItem, setEditingItem] = useState(null);
   const [newStock, setNewStock] = useState('');
@@ -145,6 +149,10 @@ const Inventario = () => {
     return 'stock-ok';
   };
 
+  const filteredInventario = inventario.filter(item => 
+    item.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="dashboard-container">
       <div className="inventario-header">
@@ -172,6 +180,14 @@ const Inventario = () => {
             {loading ? '↻ Cargando...' : '↻ Refrescar'}
           </button>
         </div>
+
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+          <SearchBar 
+            placeholder="Buscar repuesto o equipo..." 
+            value={searchTerm} 
+            onChange={setSearchTerm} 
+          />
+        </div>
         
         {loading && inventario.length === 0 && <div className="loading-state">Cargando inventario...</div>}
         
@@ -185,7 +201,11 @@ const Inventario = () => {
           <div className="empty-state">No hay repuestos registrados en el inventario.</div>
         )}
 
-        {inventario.length > 0 && (
+        {!loading && inventario.length > 0 && filteredInventario.length === 0 && (
+          <div className="empty-state">No se encontraron repuestos que coincidan con la búsqueda.</div>
+        )}
+
+        {filteredInventario.length > 0 && (
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -198,7 +218,7 @@ const Inventario = () => {
                 </tr>
               </thead>
               <tbody>
-                {inventario.map((item) => (
+                {filteredInventario.map((item) => (
                   <tr key={item.idRepuesto}>
                     <td>
                       <div className="item-name">{item.nombre}</div>

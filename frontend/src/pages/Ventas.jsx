@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { ventaService } from '../services/ventaService';
+import SearchBar from '../components/SearchBar';
 import './Ventas.css';
 
 const Ventas = () => {
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     cargarVentas();
@@ -70,6 +73,13 @@ const Ventas = () => {
     alert(`Próximamente: Mostrando detalle completo de la venta #${id}`);
   };
 
+  const filteredVentas = ventas.filter(v => {
+    const term = searchTerm.toLowerCase();
+    const matchDetalle = v.detalle && v.detalle.toLowerCase().includes(term);
+    const matchCanal = v.canal && v.canal.toLowerCase().includes(term);
+    return matchDetalle || matchCanal;
+  });
+
   return (
     <div className="dashboard-container">
       <div className="ventas-header">
@@ -98,6 +108,14 @@ const Ventas = () => {
           </button>
         </div>
         
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+          <SearchBar 
+            placeholder="Buscar por cliente o concepto..." 
+            value={searchTerm} 
+            onChange={setSearchTerm} 
+          />
+        </div>
+
         {loading && ventas.length === 0 && <div className="loading-state">Cargando ventas...</div>}
         
         {!loading && error && ventas.length === 0 && (
@@ -110,7 +128,11 @@ const Ventas = () => {
           <div className="empty-state">No hay ventas registradas aún.</div>
         )}
 
-        {ventas.length > 0 && (
+        {!loading && ventas.length > 0 && filteredVentas.length === 0 && (
+          <div className="empty-state">No se encontraron ventas que coincidan con la búsqueda.</div>
+        )}
+
+        {filteredVentas.length > 0 && (
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -124,7 +146,7 @@ const Ventas = () => {
                 </tr>
               </thead>
               <tbody>
-                {ventas.map((venta) => (
+                {filteredVentas.map((venta) => (
                   <tr key={venta.idVenta}>
                     <td>
                       <span className="cell-id">#{venta.idVenta}</span>

@@ -26,6 +26,10 @@ public class TrabajoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trabajo no encontrado con ID: " + id));
     }
 
+    public List<Trabajo> obtenerTrabajosPorCliente(java.util.UUID idCliente) {
+        return trabajoRepository.findByCliente_IdCliente(idCliente);
+    }
+
     @Transactional
     public Trabajo actualizarEstado(Long id, EstadoTrabajo nuevoEstado) {
         Trabajo trabajo = obtenerPorId(id);
