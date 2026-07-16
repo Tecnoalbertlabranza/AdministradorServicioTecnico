@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useReactToPrint } from 'react-to-print';
 import DocumentoServicio from '../components/DocumentoServicio';
+import ModalInformeIA from '../components/ModalInformeIA';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { trabajoService } from '../services/trabajoService';
 import { formatearFecha } from '../utils/formatters';
@@ -26,6 +27,8 @@ const Trabajos = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [printData, setPrintData] = useState({ trabajo: null, tipoDoc: 'INGRESO' });
   const [isPrinting, setIsPrinting] = useState(false);
+  const [modalIAOpen, setModalIAOpen] = useState(false);
+  const [trabajoIA, setTrabajoIA] = useState(null);
   const printComponentRef = useRef();
 
   const handlePrint = useReactToPrint({
@@ -43,8 +46,13 @@ const Trabajos = () => {
 
   const triggerPrint = (e, trabajo, tipo) => {
     e.stopPropagation();
-    setPrintData({ trabajo, tipoDoc: tipo });
-    setIsPrinting(true);
+    if (tipo === 'ENTREGA') {
+      setTrabajoIA(trabajo);
+      setModalIAOpen(true);
+    } else {
+      setPrintData({ trabajo, tipoDoc: tipo });
+      setIsPrinting(true);
+    }
   };
 
   useEffect(() => {
@@ -226,11 +234,17 @@ const Trabajos = () => {
         </div>
       )}
 
-      {/* Hidden print component (hidden via CSS class) */}
+      {/* Hidden print component (hidden via CSS class) - Solo para INGRESO */}
       <DocumentoServicio 
         ref={printComponentRef} 
         trabajo={printData.trabajo} 
         tipoDoc={printData.tipoDoc} 
+      />
+
+      <ModalInformeIA 
+        isOpen={modalIAOpen}
+        onClose={() => setModalIAOpen(false)}
+        trabajo={trabajoIA}
       />
     </div>
   );

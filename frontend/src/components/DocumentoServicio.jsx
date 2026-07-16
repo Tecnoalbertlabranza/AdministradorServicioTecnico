@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { formatearFecha, formatearMoneda } from '../utils/formatters';
 import './DocumentoServicio.css';
 
-const DocumentoServicio = forwardRef(({ trabajo, tipoDoc }, ref) => {
+const DocumentoServicio = forwardRef(({ trabajo, tipoDoc, detalleReparacion }, ref) => {
   if (!trabajo) return null;
 
   const esIngreso = tipoDoc === 'INGRESO';
@@ -72,7 +72,7 @@ const DocumentoServicio = forwardRef(({ trabajo, tipoDoc }, ref) => {
           {esIngreso ? 'Problema Reportado' : 'Detalle Técnico de la Reparación'}
         </div>
         <div className="doc-text-box">
-          {trabajo.servicio || 'Sin detalle especificado.'}
+          {esIngreso ? (trabajo.servicio || 'Sin detalle especificado.') : (detalleReparacion || trabajo.servicio || 'Sin detalle especificado.')}
         </div>
       </div>
 
