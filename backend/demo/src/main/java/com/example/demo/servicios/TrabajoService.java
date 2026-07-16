@@ -4,7 +4,9 @@ import com.example.demo.dto.TrabajoRequestDTO;
 import com.example.demo.modelos.Cliente;
 import com.example.demo.modelos.EstadoTrabajo;
 import com.example.demo.modelos.Trabajo;
+import com.example.demo.modelos.Inventario;
 import com.example.demo.repositorios.ClienteRepository;
+import com.example.demo.repositorios.InventarioRepository;
 import com.example.demo.repositorios.TrabajoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,8 @@ public class TrabajoService {
 
     private final TrabajoRepository trabajoRepository;
     private final ClienteRepository clienteRepository;
+    private final InventarioRepository inventarioRepository;
+    private final ClienteService clienteService;
 
     public List<Trabajo> listarTodos() {
         return trabajoRepository.findAll();
@@ -73,19 +77,42 @@ public class TrabajoService {
     @Transactional
     public Trabajo crearTrabajoManual(TrabajoRequestDTO dto) {
         Cliente cliente = null;
+        String plataforma = dto.getPlataforma() != null ? dto.getPlataforma() : "Local";
+
         if (dto.getIdCliente() != null) {
             cliente = clienteRepository.findById(dto.getIdCliente())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
+            
+            // Actualizar contacto si viene en el request y no es nulo
+            if (dto.getContacto() != null && !dto.getContacto().trim().isEmpty()) {
+                if ("WhatsApp".equalsIgnoreCase(plataforma)) {
+                    cliente.setWhatsapp(dto.getContacto().trim());
+                    clienteRepository.save(cliente);
+                } else if ("Instagram".equalsIgnoreCase(plataforma)) {
+                    cliente.setInstagram(dto.getContacto().trim());
+                    clienteRepository.save(cliente);
+                }
+            }
         } else if (dto.getNombreCliente() != null && !dto.getNombreCliente().trim().isEmpty()) {
-            cliente = clienteRepository.findByNombreIgnoreCase(dto.getNombreCliente().trim())
-                    .orElseGet(() -> {
-                        Cliente nuevoCliente = Cliente.builder()
-                                .nombre(dto.getNombreCliente().trim())
-                                .build();
-                        return clienteRepository.save(nuevoCliente);
-                    });
+            cliente = clienteService.obtenerOCrearCliente(dto.getNombreCliente().trim(), plataforma, dto.getContacto());
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere idCliente o nombreCliente");
+        }
+
+        Integer costoInsumoFinal = dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0;
+
+        // Lógica de inventario
+        if (dto.getIdRepuestoUtilizado() != null) {
+            Inventario repuesto = inventarioRepository.findById(dto.getIdRepuestoUtilizado())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Repuesto no encontrado"));
+            
+            if (repuesto.getCantidadDisponible() <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay stock disponible para el repuesto seleccionado");
+            }
+
+            repuesto.setCantidadDisponible(repuesto.getCantidadDisponible() - 1);
+            inventarioRepository.save(repuesto);
+            costoInsumoFinal = repuesto.getCostoUnitario();
         }
 
         Trabajo nuevoTrabajo = Trabajo.builder()
@@ -95,9 +122,9 @@ public class TrabajoService {
                 .servicio(dto.getServicio())
                 .estado(EstadoTrabajo.PENDIENTE)
                 .precioTotal(dto.getPrecioTotal() != null ? dto.getPrecioTotal() : 0)
-                .abono(0)
-                .costoInsumos(dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0)
-                .plataforma("Local")
+                .abono(dto.getAbono() != null ? dto.getAbono() : 0)
+                .costoInsumos(costoInsumoFinal)
+                .plataforma(plataforma)
                 .build();
 
         return trabajoRepository.save(nuevoTrabajo);

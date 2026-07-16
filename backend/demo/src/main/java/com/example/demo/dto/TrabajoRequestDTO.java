@@ -22,4 +22,7 @@ public class TrabajoRequestDTO {
     private Integer precioTotal;
     private Integer abono;
     private Integer costoInsumos;
+    private String plataforma;
+    private String contacto;
+    private Long idRepuestoUtilizado;
 }

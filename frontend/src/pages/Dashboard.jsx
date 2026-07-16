@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { trabajoService } from '../services/trabajoService';
-import { inventarioService } from '../services/inventarioService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
@@ -8,14 +7,9 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const [trabajos, setTrabajos] = useState([]);
-  const [inventario, setInventario] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
-
-  // Estados del modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTrabajo, setNewTrabajo] = useState({ cliente: '', equipo: '', servicio: '', precioTotal: '', idRepuesto: '' });
 
   useEffect(() => {
     cargarDatos();
@@ -28,9 +22,6 @@ const Dashboard = () => {
       const dataTrabajos = await trabajoService.obtenerTodos();
       dataTrabajos.sort((a, b) => b.idTrabajo - a.idTrabajo);
       setTrabajos(dataTrabajos);
-      
-      const dataInventario = await inventarioService.obtenerTodo();
-      setInventario(dataInventario);
     } catch (err) {
       setError(err.message || 'Error al cargar los trabajos');
       // Mock data temporal en caso de que el backend no esté corriendo aún
@@ -58,12 +49,6 @@ const Dashboard = () => {
           abono: 45000,
           fechaIngreso: new Date().toISOString() // Cambiado a mes actual para que se vea en el resumen
         }
-      ]);
-      
-      setInventario([
-        { idRepuesto: 1, nombre: 'Pantalla iPhone 13', costoUnitario: 80000, cantidadDisponible: 2 },
-        { idRepuesto: 2, nombre: 'Batería Samsung S22', costoUnitario: 15000, cantidadDisponible: 5 },
-        { idRepuesto: 3, nombre: 'Disco SSD 240GB', costoUnitario: 12000, cantidadDisponible: 8 },
       ]);
     } finally {
       setLoading(false);
@@ -100,37 +85,6 @@ const Dashboard = () => {
     return 'badge-pendiente';
   };
 
-  const handleGuardarTrabajo = async (e) => {
-    e.preventDefault();
-    
-    // Obtener costo de insumos desde inventario si seleccionó algo
-    let costoInsumoCalculado = 0;
-    if (newTrabajo.idRepuesto) {
-      const repuestoSelec = inventario.find(r => r.idRepuesto.toString() === newTrabajo.idRepuesto);
-      if (repuestoSelec) {
-        costoInsumoCalculado = repuestoSelec.costoUnitario || 0;
-      }
-    }
-
-    const payload = {
-      nombreCliente: newTrabajo.cliente,
-      equipo: newTrabajo.equipo,
-      servicio: newTrabajo.servicio,
-      precioTotal: parseFloat(newTrabajo.precioTotal) || 0,
-      costoInsumos: costoInsumoCalculado
-    };
-
-    try {
-      await trabajoService.crear(payload);
-      toast.success('Trabajo creado correctamente');
-      setIsModalOpen(false);
-      setNewTrabajo({ cliente: '', equipo: '', servicio: '', precioTotal: '', idRepuesto: '' });
-      await cargarDatos();
-    } catch (err) {
-      toast.error(err.message || 'Error al crear el trabajo');
-    }
-  };
-
   // Cálculos financieros del Mes Actual
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -150,9 +104,6 @@ const Dashboard = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Resumen Financiero del Mes</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-            + Nuevo Trabajo Manual
-          </button>
           <button className="refresh-btn" onClick={cargarDatos} disabled={loading} style={{
             backgroundColor: 'var(--bg-surface)',
             border: '1px solid var(--border-color)',
@@ -255,80 +206,6 @@ const Dashboard = () => {
         </>
         )}
       </div>
-
-      {/* Modal Nuevo Trabajo Manual */}
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Nuevo Trabajo Manual</h2>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}>✕</button>
-            </div>
-            <form className="modal-form" onSubmit={handleGuardarTrabajo}>
-              <div className="form-group">
-                <label>Cliente</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: Juan Pérez" 
-                  required 
-                  value={newTrabajo.cliente}
-                  onChange={(e) => setNewTrabajo({...newTrabajo, cliente: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Equipo</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: iPhone 13 Pro" 
-                  required 
-                  value={newTrabajo.equipo}
-                  onChange={(e) => setNewTrabajo({...newTrabajo, equipo: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Falla / Servicio</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: Cambio de pantalla" 
-                  required 
-                  value={newTrabajo.servicio}
-                  onChange={(e) => setNewTrabajo({...newTrabajo, servicio: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Precio Total a Cobrar (Ingreso)</label>
-                <input 
-                  type="number" 
-                  placeholder="Ej: 150000" 
-                  required 
-                  min="0"
-                  value={newTrabajo.precioTotal}
-                  onChange={(e) => setNewTrabajo({...newTrabajo, precioTotal: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Repuesto a utilizar (Opcional)</label>
-                <select 
-                  value={newTrabajo.idRepuesto}
-                  onChange={(e) => setNewTrabajo({...newTrabajo, idRepuesto: e.target.value})}
-                  className="inventory-select"
-                >
-                  <option value="">-- Sin repuesto / Insumo externo --</option>
-                  {inventario.map(item => (
-                    <option key={item.idRepuesto} value={item.idRepuesto} disabled={item.cantidadDisponible === 0}>
-                      {item.nombre} - Stock: {item.cantidadDisponible} {item.costoUnitario ? `(Costo: $${item.costoUnitario})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar Trabajo</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
