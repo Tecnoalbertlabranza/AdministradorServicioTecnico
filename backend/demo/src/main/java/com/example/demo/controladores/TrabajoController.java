@@ -56,9 +56,9 @@ public class TrabajoController {
         }
     }
 
-    @PutMapping("/{id}/estado")
-    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        String nuevoEstadoStr = body.get("estado");
+    @RequestMapping(value = "/{id}/estado", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody com.example.demo.dto.EstadoTrabajoRequestDTO dto) {
+        String nuevoEstadoStr = dto.getEstado();
         if (nuevoEstadoStr == null || nuevoEstadoStr.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "El campo 'estado' es requerido"));
         }
