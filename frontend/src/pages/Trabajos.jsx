@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
+import { useReactToPrint } from 'react-to-print';
+import DocumentoServicio from '../components/DocumentoServicio';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { trabajoService } from '../services/trabajoService';
 import { formatearFecha } from '../utils/formatters';
@@ -21,6 +24,35 @@ const Trabajos = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [printData, setPrintData] = useState({ trabajo: null, tipoDoc: 'INGRESO' });
+  const [isPrinting, setIsPrinting] = useState(false);
+  const printComponentRef = useRef();
+
+  const handlePrint = useReactToPrint({
+    contentRef: printComponentRef,
+    documentTitle: 'Documento_TecnoAlbert',
+    onAfterPrint: () => {
+      setPrintData({ trabajo: null, tipoDoc: 'INGRESO' });
+      toast.success('Documento generado correctamente');
+    },
+    onPrintError: (error) => {
+      console.error('Error al imprimir:', error);
+      toast.error('Error al abrir la ventana de impresión');
+    }
+  });
+
+  const triggerPrint = (e, trabajo, tipo) => {
+    e.stopPropagation();
+    setPrintData({ trabajo, tipoDoc: tipo });
+    setIsPrinting(true);
+  };
+
+  useEffect(() => {
+    if (isPrinting && printData.trabajo && printComponentRef.current) {
+      handlePrint();
+      setIsPrinting(false);
+    }
+  }, [isPrinting, printData, handlePrint]);
 
   useEffect(() => {
     cargarTrabajos();
@@ -159,8 +191,22 @@ const Trabajos = () => {
                                 {...provided.dragHandleProps}
                               >
                                 <div className="card-header">
-                                  <span className="card-id">#{trabajo.idTrabajo}</span>
-                                  <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
+                                  <div>
+                                    <span className="card-id">#{trabajo.idTrabajo}</span>
+                                    <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
+                                  </div>
+                                  <div className="card-print-actions">
+                                    <button 
+                                      className="btn-print-icon" 
+                                      onClick={(e) => triggerPrint(e, trabajo, 'INGRESO')} 
+                                      title="Imprimir Orden de Ingreso"
+                                    >📥</button>
+                                    <button 
+                                      className="btn-print-icon" 
+                                      onClick={(e) => triggerPrint(e, trabajo, 'ENTREGA')} 
+                                      title="Imprimir Informe de Entrega"
+                                    >📤</button>
+                                  </div>
                                 </div>
                                 <h4 className="card-equipo">{trabajo.equipo}</h4>
                                 <div className="card-cliente">{trabajo.cliente?.nombre || 'Sin registrar'}</div>
@@ -179,6 +225,13 @@ const Trabajos = () => {
           </DragDropContext>
         </div>
       )}
+
+      {/* Hidden print component (hidden via CSS class) */}
+      <DocumentoServicio 
+        ref={printComponentRef} 
+        trabajo={printData.trabajo} 
+        tipoDoc={printData.tipoDoc} 
+      />
     </div>
   );
 };
