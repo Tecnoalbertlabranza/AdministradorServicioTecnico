@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TrabajoRepository extends JpaRepository<Trabajo, Long> {
     java.util.List<Trabajo> findByCliente_IdCliente(java.util.UUID idCliente);
+    java.util.List<Trabajo> findByFechaIngresoBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

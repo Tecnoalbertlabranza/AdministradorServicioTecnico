@@ -1,26 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
-import { useReactToPrint } from 'react-to-print';
-import DocumentoServicio from '../components/DocumentoServicio';
-import ModalInformeIA from '../components/ModalInformeIA';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useState, useEffect } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { trabajoService } from '../services/trabajoService';
 import { inventarioService } from '../services/inventarioService';
 import { clienteService } from '../services/clienteService';
-import { formatearFecha } from '../utils/formatters';
+import { formatearFecha, formatearMoneda } from '../utils/formatters';
 import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
+import ModalDetalleTrabajo from '../components/ModalDetalleTrabajo';
 import './Trabajos.css';
+
+const IconEye = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+);
 
 const COLUMNAS_ESTADOS = [
   { id: 'PENDIENTE', titulo: 'Pendiente', color: 'var(--accent-warning)' },
   { id: 'EN_REVISION', titulo: 'En Revisión', color: 'var(--accent-primary)' },
   { id: 'ESPERANDO_REPUESTO', titulo: 'Esperando Repuesto', color: 'var(--accent-danger)' },
   { id: 'FINALIZADO', titulo: 'Finalizado / Listo', color: 'var(--accent-success)' },
-  { id: 'ENTREGADO', titulo: 'Entregado', color: 'var(--text-muted)' }
+  { id: 'ENTREGADO', titulo: 'Entregado', color: '#a855f7' }
 ];
 
 const customSelectStyles = {
@@ -71,16 +74,16 @@ const customSelectStyles = {
 
 const Trabajos = () => {
   const [trabajos, setTrabajos] = useState([]);
-  const [columnsData, setColumnsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [inventario, setInventario] = useState([]);
   const [clientes, setClientes] = useState([]);
-  const [printData, setPrintData] = useState({ trabajo: null, tipoDoc: 'INGRESO' });
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [modalIAOpen, setModalIAOpen] = useState(false);
-  const [trabajoIA, setTrabajoIA] = useState(null);
+  
+  // Estado para el modal de detalle
+  const [selectedTrabajo, setSelectedTrabajo] = useState(null);
+  const [isDetalleModalOpen, setIsDetalleModalOpen] = useState(false);
   
   // Estados del modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,67 +93,72 @@ const Trabajos = () => {
     precioTotal: '', abono: '', idRepuesto: ''
   });
 
-  const printComponentRef = useRef();
-
-  const handlePrint = useReactToPrint({
-    contentRef: printComponentRef,
-    documentTitle: 'Documento_TecnoAlbert',
-    onAfterPrint: () => {
-      setPrintData({ trabajo: null, tipoDoc: 'INGRESO' });
-      toast.success('Documento generado correctamente');
-    },
-    onPrintError: (error) => {
-      console.error('Error al imprimir:', error);
-      toast.error('Error al abrir la ventana de impresión');
-    }
-  });
-
-  const triggerPrint = (e, trabajo, tipo) => {
-    e.stopPropagation();
-    if (tipo === 'ENTREGA') {
-      setTrabajoIA(trabajo);
-      setModalIAOpen(true);
-    } else {
-      setPrintData({ trabajo, tipoDoc: tipo });
-      setIsPrinting(true);
-    }
-  };
-
-  useEffect(() => {
-    if (isPrinting && printData.trabajo && printComponentRef.current) {
-      handlePrint();
-      setIsPrinting(false);
-    }
-  }, [isPrinting, printData, handlePrint]);
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1); // 1 a 12
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   useEffect(() => {
     cargarTrabajos();
+  }, [currentMonth, currentYear]);
+
+  useEffect(() => {
     cargarInventario();
     cargarClientes();
   }, []);
 
-  useEffect(() => {
-    // Reconstruir las columnas cuando cambian los datos o el buscador
-    const term = searchTerm.toLowerCase();
-    const filtered = trabajos.filter(t => {
-      const matchEquipo = t.equipo?.toLowerCase().includes(term);
-      const matchCliente = t.cliente?.nombre?.toLowerCase().includes(term);
-      const matchFalla = t.servicio?.toLowerCase().includes(term);
-      return matchEquipo || matchCliente || matchFalla;
-    });
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
 
-    const newColumns = {};
-    COLUMNAS_ESTADOS.forEach(col => {
-      newColumns[col.id] = filtered.filter(t => (t.estado || 'PENDIENTE') === col.id);
-    });
-    setColumnsData(newColumns);
-  }, [trabajos, searchTerm]);
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const getMonthName = (m) => {
+    const d = new Date(2000, m - 1, 1);
+    return d.toLocaleString('es-ES', { month: 'long' });
+  };
+
+  const filteredTrabajos = trabajos.filter(t => {
+    const term = searchTerm.toLowerCase();
+    const matchSearch = (t.equipo?.toLowerCase().includes(term)) || 
+                        (t.cliente?.nombre?.toLowerCase().includes(term)) || 
+                        (t.servicio?.toLowerCase().includes(term));
+    const matchEstado = filtroEstado === 'Todos' ? true : (t.estado || 'PENDIENTE') === filtroEstado;
+    return matchSearch && matchEstado;
+  });
+
+  const getEstadoBadgeClass = (estado) => {
+    switch(estado) {
+      case 'PENDIENTE': return 'status-badge status-pendiente';
+      case 'FINALIZADO': return 'status-badge status-finalizado';
+      case 'ENTREGADO': return 'status-badge status-entregado';
+      case 'ESPERANDO_REPUESTO': return 'status-badge status-error';
+      case 'EN_REVISION': return 'status-badge status-primary';
+      default: return 'status-badge';
+    }
+  };
+
+  const handleVerDetalles = (trabajo) => {
+    setSelectedTrabajo(trabajo);
+    setIsDetalleModalOpen(true);
+  };
 
   const cargarTrabajos = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await trabajoService.obtenerTodos();
+      const data = await trabajoService.obtenerTodos(currentMonth, currentYear);
       // Ordenar por ID para consistencia visual (los más antiguos primero)
       data.sort((a, b) => a.idTrabajo - b.idTrabajo);
       setTrabajos(data);
@@ -260,56 +268,31 @@ const Trabajos = () => {
   };
   const contactoConfig = getContactoConfig();
 
-  const onDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
-
-    // Validar si hay destino y si cambió de lugar
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
-
-    const sourceColumnId = source.droppableId;
-    const destColumnId = destination.droppableId;
-
-    // Obtener los arrays de origen y destino
-    const sourceItems = Array.from(columnsData[sourceColumnId]);
-    const destItems = sourceColumnId === destColumnId ? sourceItems : Array.from(columnsData[destColumnId]);
-    
-    // Remover el item arrastrado
-    const [movedItem] = sourceItems.splice(source.index, 1);
-    
-    // Cambiar estado en el objeto
-    const itemToInsert = { ...movedItem, estado: destColumnId };
-    
-    // Insertar en la nueva posición
-    destItems.splice(destination.index, 0, itemToInsert);
-
-    // Actualizar columnas en la UI de inmediato (Optimistic UI)
-    setColumnsData(prev => ({
-      ...prev,
-      [sourceColumnId]: sourceItems,
-      [destColumnId]: destItems
-    }));
-
-    // Sincronizar el array principal
-    setTrabajos(prev => prev.map(t => t.idTrabajo.toString() === draggableId ? itemToInsert : t));
-
-    // Si cambió de columna, enviar al servidor
-    if (sourceColumnId !== destColumnId) {
-      try {
-        await trabajoService.actualizarEstado(movedItem.idTrabajo, destColumnId);
-        toast.success(`Trabajo movido a ${COLUMNAS_ESTADOS.find(c => c.id === destColumnId).titulo}`);
-      } catch (err) {
-        // Revertir en caso de error
-        toast.error('Error al actualizar el estado. Se revirtió el cambio.');
-        cargarTrabajos(); // recargar para recuperar el estado original
-      }
-    }
-  };
+  const TabsNav = () => (
+    <div className="tabs-container">
+      <button 
+        className={`tab-btn ${filtroEstado === 'Todos' ? 'active' : ''}`}
+        onClick={() => setFiltroEstado('Todos')}
+      >
+        Todos
+      </button>
+      {COLUMNAS_ESTADOS.map(col => (
+        <button
+          key={col.id}
+          className={`tab-btn ${filtroEstado === col.id ? 'active' : ''}`}
+          onClick={() => setFiltroEstado(col.id)}
+          style={filtroEstado === col.id ? { borderBottomColor: col.color, color: col.color } : {}}
+        >
+          {col.titulo}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="layout-page-container">
       <div className="trabajos-header">
-        <h1 className="trabajos-title">Tablero Kanban de Trabajos</h1>
+        <h1 className="trabajos-title">Gestor de Trabajos</h1>
       </div>
 
       <div className="trabajos-toolbar">
@@ -331,87 +314,78 @@ const Trabajos = () => {
       {error && <div className="error-state">{error}</div>}
 
       {loading && trabajos.length === 0 ? (
-        <Spinner text="Cargando tablero kanban..." />
+        <Spinner text="Cargando trabajos..." />
       ) : (
-        <div className="kanban-scroll-container">
-          <DragDropContext onDragEnd={onDragEnd}>
-            <div className="kanban-board">
-              {COLUMNAS_ESTADOS.map((columna) => (
-                <div key={columna.id} className="kanban-column">
-                  <div className="kanban-column-header" style={{ borderTop: `3px solid ${columna.color}` }}>
-                    <h3>{columna.titulo}</h3>
-                    <span className="kanban-column-count">
-                      {columnsData[columna.id]?.length || 0}
-                    </span>
-                  </div>
-                  
-                  <Droppable droppableId={columna.id}>
-                    {(provided, snapshot) => (
-                      <div 
-                        className={`kanban-droppable-area ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                      >
-                        {columnsData[columna.id]?.map((trabajo, index) => (
-                          <Draggable 
-                            key={trabajo.idTrabajo.toString()} 
-                            draggableId={trabajo.idTrabajo.toString()} 
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <div
-                                className={`kanban-card ${snapshot.isDragging ? 'is-dragging' : ''}`}
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                              >
-                                <div className="card-header">
-                                  <div>
-                                    <span className="card-id">#{trabajo.idTrabajo}</span>
-                                    <span className="card-date">{formatearFecha(trabajo.fechaIngreso)}</span>
-                                  </div>
-                                  <div className="card-print-actions">
-                                    <button 
-                                      className="btn-print-icon" 
-                                      onClick={(e) => triggerPrint(e, trabajo, 'INGRESO')} 
-                                      title="Imprimir Orden de Ingreso"
-                                    >📥</button>
-                                    <button 
-                                      className="btn-print-icon" 
-                                      onClick={(e) => triggerPrint(e, trabajo, 'ENTREGA')} 
-                                      title="Imprimir Informe de Entrega"
-                                    >📤</button>
-                                  </div>
-                                </div>
-                                <h4 className="card-equipo">{trabajo.equipo}</h4>
-                                <div className="card-cliente">{trabajo.cliente?.nombre || 'Sin registrar'}</div>
-                                <div className="card-servicio">{trabajo.servicio}</div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </div>
-              ))}
+        <div className="data-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <TabsNav />
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: 'var(--bg-primary)', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+              <button onClick={handlePrevMonth} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.25rem 0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>&lsaquo;</button>
+              <span style={{ fontWeight: '500', textTransform: 'capitalize', minWidth: '120px', textAlign: 'center', color: 'var(--text-primary)' }}>
+                {getMonthName(currentMonth)} {currentYear}
+              </span>
+              <button onClick={handleNextMonth} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.25rem 0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>&rsaquo;</button>
             </div>
-          </DragDropContext>
+          </div>
+
+          {filteredTrabajos.length === 0 ? (
+            <div className="empty-state">No se encontraron trabajos para este filtro.</div>
+          ) : (
+            <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>ID / Fecha</th>
+                    <th>Cliente</th>
+                    <th>Equipo y Modelo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTrabajos.map(trabajo => (
+                    <tr key={trabajo.idTrabajo}>
+                      <td>
+                        <div style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{trabajo.idTrabajo}</div>
+                        <div style={{ fontSize: '0.85rem' }}>{formatearFecha(trabajo.fechaIngreso)}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.cliente?.nombre || 'Sin registrar'}</div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.equipo}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{trabajo.modelo || 'Genérico'}</div>
+                      </td>
+                      <td>
+                        <span className={getEstadoBadgeClass(trabajo.estado || 'PENDIENTE')}>
+                          {(trabajo.estado || 'PENDIENTE').replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          className="btn-action" 
+                          onClick={() => handleVerDetalles(trabajo)}
+                          title="Ver Detalles"
+                        >
+                          <IconEye />
+                          Ver Detalles
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Hidden print component (hidden via CSS class) - Solo para INGRESO */}
-      <DocumentoServicio 
-        ref={printComponentRef} 
-        trabajo={printData.trabajo} 
-        tipoDoc={printData.tipoDoc} 
-      />
-
-      <ModalInformeIA 
-        isOpen={modalIAOpen}
-        onClose={() => setModalIAOpen(false)}
-        trabajo={trabajoIA}
+      <ModalDetalleTrabajo
+        isOpen={isDetalleModalOpen}
+        onClose={() => setIsDetalleModalOpen(false)}
+        trabajo={selectedTrabajo}
+        onUpdate={cargarTrabajos}
       />
 
       {/* Modal Nuevo Trabajo Manual (2 columnas) */}

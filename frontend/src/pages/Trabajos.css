@@ -25,176 +25,83 @@
   gap: 1rem;
 }
 
-.kanban-scroll-container {
-  overflow-x: auto;
-  padding-bottom: 1rem;
-  /* Custom scrollbar for Kanban */
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) var(--bg-primary);
-}
-
-.kanban-scroll-container::-webkit-scrollbar {
-  height: 8px;
-}
-
-.kanban-scroll-container::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-.kanban-scroll-container::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 20px;
-}
-
-.kanban-board {
+.tabs-container {
   display: flex;
-  gap: 1.25rem;
-  min-width: max-content;
-  align-items: flex-start;
-}
-
-.kanban-column {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 200px);
-}
-
-.kanban-column-header {
-  padding: 1rem 1.25rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid var(--border-color);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-}
-
-.kanban-column-header h3 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-.kanban-column-count {
-  background-color: var(--bg-primary);
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-weight: 700;
-}
-
-.kanban-droppable-area {
-  padding: 1rem;
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  min-height: 150px;
-  transition: background-color 0.2s ease;
-}
-
-.kanban-droppable-area.dragging-over {
-  background-color: rgba(255, 255, 255, 0.03);
-}
-
-.kanban-card {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  cursor: grab;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-}
-
-.kanban-card:active {
-  cursor: grabbing;
-}
-
-.kanban-card.is-dragging {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border-color: var(--accent-primary);
-  transform: rotate(2deg) scale(1.02);
-  z-index: 100;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.card-header > div:first-child {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0;
+  overflow-x: auto;
 }
 
-.card-id {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-family: monospace;
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-}
-
-.card-date {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.card-print-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-print-icon {
+.tab-btn {
   background: transparent;
   border: none;
-  cursor: pointer;
-  padding: 0.2rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  opacity: 0.6;
-  transition: opacity 0.2s, background-color 0.2s;
-  color: inherit;
-}
-
-.btn-print-icon:hover {
-  opacity: 1;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.card-equipo {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
-}
-
-.card-cliente {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.75rem;
-}
-
-.card-servicio {
-  font-size: 0.8125rem;
   color: var(--text-muted);
-  line-height: 1.4;
-  border-top: 1px dashed var(--border-color);
-  padding-top: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+/* Badges de Estado */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.status-pendiente {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b; /* Naranja */
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-primary {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6; /* Azul */
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444; /* Rojo */
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-finalizado {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981; /* Verde */
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-entregado {
+  background-color: rgba(168, 85, 247, 0.1);
+  color: #a855f7; /* Morado */
+  border: 1px solid rgba(168, 85, 247, 0.2);
 }
 
 /* Base Modal Styles (to avoid depending on Dashboard.css) */

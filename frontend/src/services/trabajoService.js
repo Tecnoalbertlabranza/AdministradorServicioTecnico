@@ -1,8 +1,12 @@
 import api from './api';
 
 export const trabajoService = {
-    obtenerTodos: async () => {
-        return await api('/trabajos/');
+    obtenerTodos: async (mes, anio) => {
+        let url = '/trabajos/';
+        if (mes && anio) {
+            url += `?mes=${mes}&anio=${anio}`;
+        }
+        return await api(url);
     },
 
     obtenerPorId: async (id) => {

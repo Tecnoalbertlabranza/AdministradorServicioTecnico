@@ -21,8 +21,14 @@ public class TrabajoController {
     private final TrabajoService trabajoService;
 
     @GetMapping("/")
-    public ResponseEntity<List<TrabajoResponseDTO>> listarTodos() {
-        List<TrabajoResponseDTO> trabajos = trabajoService.listarTodos().stream()
+    public ResponseEntity<List<TrabajoResponseDTO>> listarTodos(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer anio) {
+        
+        int mesFinal = (mes != null) ? mes : java.time.LocalDate.now().getMonthValue();
+        int anioFinal = (anio != null) ? anio : java.time.LocalDate.now().getYear();
+
+        List<TrabajoResponseDTO> trabajos = trabajoService.listarPorMes(mesFinal, anioFinal).stream()
                 .map(this::convertirADTO)
                 .toList();
         return ResponseEntity.ok(trabajos);

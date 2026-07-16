@@ -15,6 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.time.YearMonth;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,13 @@ public class TrabajoService {
 
     public List<Trabajo> listarTodos() {
         return trabajoRepository.findAll();
+    }
+
+    public List<Trabajo> listarPorMes(int mes, int anio) {
+        YearMonth yearMonth = YearMonth.of(anio, mes);
+        LocalDateTime inicio = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime fin = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
+        return trabajoRepository.findByFechaIngresoBetween(inicio, fin);
     }
 
     public Trabajo obtenerPorId(Long id) {
