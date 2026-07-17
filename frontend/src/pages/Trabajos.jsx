@@ -5,6 +5,8 @@ import { trabajoService } from '../services/trabajoService';
 import { inventarioService } from '../services/inventarioService';
 import { clienteService } from '../services/clienteService';
 import { formatearFecha, formatearMoneda } from '../utils/formatters';
+import ModalInformeIA from '../components/ModalInformeIA';
+import InputMoneda from '../components/InputMoneda';
 import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
@@ -440,13 +442,13 @@ const Trabajos = () => {
                   <h3 className="section-title mt-4">Cobros</h3>
                   <div className="form-group">
                     <label>Precio Total a Cobrar</label>
-                    <input type="number" placeholder="Ej: 150000" required min="0"
-                      value={newTrabajo.precioTotal} onChange={(e) => setNewTrabajo({...newTrabajo, precioTotal: e.target.value})} />
+                    <InputMoneda placeholder="Ej: $ 150.000" required
+                      value={newTrabajo.precioTotal} onChange={(val) => setNewTrabajo({...newTrabajo, precioTotal: val})} />
                   </div>
                   <div className="form-group">
                     <label>Abono Inicial</label>
-                    <input type="number" placeholder="Ej: 50000" min="0"
-                      value={newTrabajo.abono} onChange={(e) => setNewTrabajo({...newTrabajo, abono: e.target.value})} />
+                    <InputMoneda placeholder="Ej: $ 50.000"
+                      value={newTrabajo.abono} onChange={(val) => setNewTrabajo({...newTrabajo, abono: val})} />
                   </div>
                 </div>
 

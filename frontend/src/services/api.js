@@ -18,6 +18,10 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
+        // Si estamos enviando un FormData, debemos asegurarnos de no forzar application/json
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
         return config;
     },
     (error) => {
@@ -69,10 +73,24 @@ async function fetchWithInterceptor(endpoint, options = {}) {
     const { method = 'GET', body, ...restOptions } = options;
     
     try {
+        let requestData;
+        let customHeaders = { ...restOptions.headers };
+
+        if (body instanceof FormData) {
+            requestData = body;
+            // axios maneja automáticamente el Content-Type para FormData y el boundary
+            delete customHeaders['Content-Type']; 
+        } else if (body && typeof body === 'string') {
+            requestData = JSON.parse(body);
+        } else {
+            requestData = body;
+        }
+
         const response = await apiClient({
             url: endpoint,
             method: method,
-            data: body ? JSON.parse(body) : undefined,
+            data: requestData,
+            headers: customHeaders,
             ...restOptions
         });
         

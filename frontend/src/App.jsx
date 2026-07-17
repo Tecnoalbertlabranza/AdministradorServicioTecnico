@@ -9,6 +9,7 @@ import Trabajos from './pages/Trabajos';
 import Inventario from './pages/Inventario';
 import Ventas from './pages/Ventas';
 import Clientes from './pages/Clientes';
+import EquiposVenta from './pages/EquiposVenta';
 import './App.css';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
             <Route path="clientes" element={<Clientes />} />
             <Route path="inventario" element={<Inventario />} />
             <Route path="ventas" element={<Ventas />} />
+            <Route path="vitrina" element={<EquiposVenta />} />
           </Route>
 
           {/* Catch-all para URLs no encontradas */}

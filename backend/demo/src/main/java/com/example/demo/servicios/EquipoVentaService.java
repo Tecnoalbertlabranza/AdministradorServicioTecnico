@@ -3,6 +3,7 @@ package com.example.demo.servicios;
 import com.example.demo.modelos.*;
 import com.example.demo.repositorios.*;
 import com.example.demo.dto.EquipoVentaRequestDTO;
+import com.example.demo.dto.EquipoVentaResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +21,7 @@ public class EquipoVentaService {
     private final CloudinaryService cloudinaryService;
 
     @Transactional
-    public EquipoVenta crearEquipo(EquipoVentaRequestDTO dto, MultipartFile fotoPortada, List<MultipartFile> fotosGaleria) throws IOException {
+    public EquipoVentaResponseDTO crearEquipo(EquipoVentaRequestDTO dto, MultipartFile fotoPortada, List<MultipartFile> fotosGaleria) throws IOException {
         
         CategoriaEquipo categoria = categoriaRepository.findById(dto.getIdCategoria())
             .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
@@ -63,6 +64,43 @@ public class EquipoVentaService {
             }
         }
 
-        return equipo;
+        return mapearADto(equipo);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EquipoVentaResponseDTO> obtenerTodos() {
+        return equipoRepository.findAll().stream()
+                .map(this::mapearADto)
+                .toList();
+    }
+
+    private EquipoVentaResponseDTO mapearADto(EquipoVenta equipo) {
+        EquipoVentaResponseDTO dto = new EquipoVentaResponseDTO();
+        dto.setId(equipo.getId());
+        dto.setTitulo(equipo.getTitulo());
+        dto.setEspecificaciones(equipo.getEspecificaciones());
+        dto.setPrecioVenta(equipo.getPrecioVenta());
+        dto.setCondicionEstetica(equipo.getCondicionEstetica());
+        dto.setCostoCompra(equipo.getCostoCompra());
+        dto.setCostoReacondicionamiento(equipo.getCostoReacondicionamiento());
+        dto.setEstadoInventario(equipo.getEstadoInventario());
+        
+        if (equipo.getCategoria() != null) {
+            dto.setNombreCategoria(equipo.getCategoria().getNombre());
+        }
+
+        if (equipo.getImagenes() != null) {
+            List<com.example.demo.dto.ImagenEquipoDTO> imagenesDTO = equipo.getImagenes().stream()
+                    .map(img -> {
+                        com.example.demo.dto.ImagenEquipoDTO imgDTO = new com.example.demo.dto.ImagenEquipoDTO();
+                        imgDTO.setId(img.getId());
+                        imgDTO.setUrlImagen(img.getUrlImagen());
+                        imgDTO.setEsPortada(img.isEsPortada());
+                        return imgDTO;
+                    }).toList();
+            dto.setImagenes(imagenesDTO);
+        }
+
+        return dto;
     }
 }

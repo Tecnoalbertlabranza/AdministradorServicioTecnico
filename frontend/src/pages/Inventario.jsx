@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { inventarioService } from '../services/inventarioService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
-import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
 import './Inventario.css';

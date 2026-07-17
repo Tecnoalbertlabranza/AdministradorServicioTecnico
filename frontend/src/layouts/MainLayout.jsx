@@ -17,6 +17,7 @@ const MainLayout = () => {
     { id: 'clientes', label: 'Clientes', icon: '👥', path: '/clientes' },
     { id: 'inventario', label: 'Inventario', icon: '📦', path: '/inventario' },
     { id: 'ventas', label: 'Ventas', icon: '💰', path: '/ventas' },
+    { id: 'vitrina', label: 'Equipos en venta', icon: '🛍️', path: '/vitrina' },
   ];
 
   // Helper para saber qué vista está activa
