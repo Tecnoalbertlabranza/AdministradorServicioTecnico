@@ -4,12 +4,18 @@ import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
+import ModalNuevaVenta from '../components/ModalNuevaVenta';
+import ModalDetalleVenta from '../components/ModalDetalleVenta';
 import './Ventas.css';
 
 const Ventas = () => {
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetalleModalOpen, setIsDetalleModalOpen] = useState(false);
+  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,7 +29,7 @@ const Ventas = () => {
       setError(null);
       const data = await ventaService.obtenerHistorialAdmin();
       // Ordenar por las más recientes primero
-      data.sort((a, b) => b.idVenta - a.idVenta);
+      data.sort((a, b) => b.id - a.id);
       setVentas(data);
     } catch (err) {
       setError(err.message || 'Error al cargar las ventas');
@@ -32,23 +38,29 @@ const Ventas = () => {
       console.log("Usando mock data para Ventas...");
       setVentas([
         {
-          idVenta: 1001,
+          id: 1001,
           detalle: 'Reparación de pantalla iPhone 13 Pro + Mica de cristal',
           precioVenta: 155000,
+          costoAsociado: 50000,
+          tipoVenta: 'ACCESORIO',
           canal: 'Local',
           fechaVenta: new Date().toISOString()
         },
         {
-          idVenta: 1002,
+          id: 1002,
           detalle: 'Venta de Cargador Original Samsung 25W',
           precioVenta: 15000,
+          costoAsociado: 8000,
+          tipoVenta: 'ACCESORIO',
           canal: 'Instagram',
           fechaVenta: new Date(Date.now() - 3600000).toISOString()
         },
         {
-          idVenta: 1003,
+          id: 1003,
           detalle: 'Cambio de Batería Macbook Pro 2019',
           precioVenta: 120000,
+          costoAsociado: 150000,
+          tipoVenta: 'EQUIPO',
           canal: 'WhatsApp',
           fechaVenta: new Date(Date.now() - 86400000).toISOString()
         }
@@ -59,11 +71,12 @@ const Ventas = () => {
   };
 
   const handleNuevaVenta = () => {
-    toast('Próximamente: Se abrirá modal para registrar una nueva venta o ingreso', { icon: '🚧' });
+    setIsModalOpen(true);
   };
 
-  const handleVerDetalle = (id) => {
-    toast(`Próximamente: Mostrando detalle completo de la venta #${id}`, { icon: '🚧' });
+  const handleVerDetalle = (venta) => {
+    setVentaSeleccionada(venta);
+    setIsDetalleModalOpen(true);
   };
 
   const filteredVentas = ventas.filter(v => {
@@ -140,9 +153,9 @@ const Ventas = () => {
               </thead>
               <tbody>
                 {filteredVentas.map((venta) => (
-                  <tr key={venta.idVenta}>
+                  <tr key={venta.id}>
                     <td>
-                      <span className="cell-id">#{venta.idVenta}</span>
+                      <span className="cell-id">#{venta.id}</span>
                     </td>
                     <td>
                       <div className="item-date">{formatearFecha(venta.fechaVenta)}</div>
@@ -163,7 +176,7 @@ const Ventas = () => {
                         <button 
                           className="btn-icon view" 
                           title="Ver detalle" 
-                          onClick={() => handleVerDetalle(venta.idVenta)}
+                          onClick={() => handleVerDetalle(venta)}
                         >
                           👁
                         </button>
@@ -176,6 +189,18 @@ const Ventas = () => {
           </div>
         )}
       </div>
+
+      <ModalNuevaVenta
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onVentaExitosa={cargarVentas}
+      />
+      
+      <ModalDetalleVenta
+        isOpen={isDetalleModalOpen}
+        onClose={() => setIsDetalleModalOpen(false)}
+        venta={ventaSeleccionada}
+      />
     </div>
   );
 };

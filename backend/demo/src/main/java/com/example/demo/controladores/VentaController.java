@@ -6,8 +6,12 @@ import com.example.demo.repositorios.VentaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.dto.VentaRequestDTO;
+import com.example.demo.servicios.VentaService;
 
 import java.util.List;
 
@@ -17,6 +21,18 @@ import java.util.List;
 public class VentaController {
 
     private final VentaRepository ventaRepository;
+    private final VentaService ventaService;
+
+    @PostMapping
+    public ResponseEntity<VentaResponseDTO> registrarVentaManual(@RequestBody VentaRequestDTO request) {
+        try {
+            VentaResponseDTO response = ventaService.registrarVentaManual(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @GetMapping("/")
     public ResponseEntity<List<VentaResponseDTO>> listarHistorialAdmin() {

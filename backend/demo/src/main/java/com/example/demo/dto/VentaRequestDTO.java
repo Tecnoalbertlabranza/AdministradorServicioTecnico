@@ -15,4 +15,5 @@ public class VentaRequestDTO {
     private String canal;
     private String metodoPago;
     private String tipoVenta;
+    private Integer costoAsociado;
 }
