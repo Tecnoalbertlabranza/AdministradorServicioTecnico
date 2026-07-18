@@ -19,6 +19,7 @@ public class EquipoVentaService {
     private final CategoriaEquipoRepository categoriaRepository;
     private final ImagenEquipoRepository imagenRepository;
     private final CloudinaryService cloudinaryService;
+    private final VentaRepository ventaRepository;
 
     @Transactional
     public EquipoVentaResponseDTO crearEquipo(EquipoVentaRequestDTO dto, MultipartFile fotoPortada, List<MultipartFile> fotosGaleria) throws IOException {
@@ -63,6 +64,33 @@ public class EquipoVentaService {
                 }
             }
         }
+
+        return mapearADto(equipo);
+    }
+
+    @Transactional
+    public EquipoVentaResponseDTO venderEquipo(Long id, com.example.demo.dto.VentaRequestDTO request) {
+        EquipoVenta equipo = equipoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Equipo no encontrado con ID: " + id));
+
+        if (equipo.getEstadoInventario() == EstadoInventarioVenta.VENDIDO) {
+            throw new RuntimeException("El equipo ya se encuentra vendido");
+        }
+
+        equipo.setEstadoInventario(EstadoInventarioVenta.VENDIDO);
+        equipo = equipoRepository.save(equipo);
+
+        Venta venta = new Venta();
+        venta.setTipoVenta("EQUIPO");
+        venta.setDetalle(equipo.getTitulo());
+        venta.setPrecioVenta(request.getPrecioVenta());
+        venta.setCostoAsociado((equipo.getCostoCompra() != null ? equipo.getCostoCompra().intValue() : 0) + 
+                               (equipo.getCostoReacondicionamiento() != null ? equipo.getCostoReacondicionamiento().intValue() : 0));
+        venta.setMetodoPago(request.getMetodoPago());
+        venta.setCanal(request.getCanal() != null ? request.getCanal() : "Local");
+        venta.setEquipoVenta(equipo);
+        
+        ventaRepository.save(venta);
 
         return mapearADto(equipo);
     }

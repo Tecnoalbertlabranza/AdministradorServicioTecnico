@@ -4,12 +4,15 @@ import { formatearMoneda } from '../utils/formatters';
 import FormularioNuevoEquipo from '../components/FormularioNuevoEquipo';
 import Spinner from '../components/Spinner';
 import { toast } from 'react-hot-toast';
+import ModalCierreVenta from '../components/ModalCierreVenta';
 import './Inventario.css';
 
 const EquiposVenta = () => {
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCierreModalOpen, setIsCierreModalOpen] = useState(false);
+  const [equipoSeleccionado, setEquipoSeleccionado] = useState(null);
 
   useEffect(() => {
     cargarEquipos();
@@ -44,6 +47,11 @@ const EquiposVenta = () => {
       case 'VENDIDO': return 'Vendido';
       default: return estado;
     }
+  };
+
+  const handleAbrirVenta = (equipo) => {
+    setEquipoSeleccionado(equipo);
+    setIsCierreModalOpen(true);
   };
 
   return (
@@ -84,8 +92,10 @@ const EquiposVenta = () => {
               <tbody>
                 {equipos.map((equipo) => {
                   const portada = equipo.imagenes?.find(img => img.esPortada)?.urlImagen;
+                  const isVendido = equipo.estadoInventario === 'VENDIDO';
+                  
                   return (
-                    <tr key={equipo.id}>
+                    <tr key={equipo.id} style={{ opacity: isVendido ? 0.6 : 1 }}>
                       <td>
                         {portada ? (
                           <img src={portada} alt={equipo.titulo} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
@@ -110,6 +120,15 @@ const EquiposVenta = () => {
                       </td>
                       <td>
                         <div className="actions-cell">
+                          <button 
+                            className="btn-icon" 
+                            style={{ color: isVendido ? 'var(--text-muted)' : '#22c55e', cursor: isVendido ? 'not-allowed' : 'pointer' }} 
+                            title={isVendido ? "El equipo ya fue vendido" : "Vender Equipo"} 
+                            onClick={() => !isVendido && handleAbrirVenta(equipo)}
+                            disabled={isVendido}
+                          >
+                            💲
+                          </button>
                           <button className="btn-icon edit" title="Editar Equipo" onClick={() => toast('Función en desarrollo', { icon: '🚧' })}>✎</button>
                           <button className="btn-icon delete" title="Eliminar Equipo" onClick={() => toast('Función en desarrollo', { icon: '🚧' })}>🗑</button>
                         </div>
@@ -127,6 +146,13 @@ const EquiposVenta = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onUpdate={cargarEquipos} 
+      />
+
+      <ModalCierreVenta
+        isOpen={isCierreModalOpen}
+        onClose={() => setIsCierreModalOpen(false)}
+        equipo={equipoSeleccionado}
+        onVentaExitosa={cargarEquipos}
       />
     </div>
   );

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ventas")
@@ -19,7 +19,10 @@ public class Venta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idVenta;
+    private Long id;
+
+    @Column(nullable = false)
+    private String tipoVenta; // 'EQUIPO' o 'ACCESORIO'
 
     @Column(nullable = false)
     private String detalle;
@@ -28,9 +31,19 @@ public class Venta {
     private Integer precioVenta;
 
     @Column(nullable = false)
+    private Integer costoAsociado;
+
+    @Column(nullable = false)
+    private String metodoPago;
+
+    @Column(nullable = false)
     private String canal;
 
     @CreationTimestamp
     @Column(updatable = false)
-    private Timestamp fechaVenta;
+    private LocalDateTime fechaVenta;
+
+    @ManyToOne
+    @JoinColumn(name = "equipo_venta_id", nullable = true)
+    private EquipoVenta equipoVenta;
 }

@@ -38,9 +38,12 @@ public class VentaController {
 
     private VentaResponseDTO convertirADTO(Venta venta) {
         return VentaResponseDTO.builder()
-                .idVenta(venta.getIdVenta())
+                .id(venta.getId())
+                .tipoVenta(venta.getTipoVenta())
                 .detalle(venta.getDetalle())
                 .precioVenta(venta.getPrecioVenta())
+                .costoAsociado(venta.getCostoAsociado())
+                .metodoPago(venta.getMetodoPago())
                 .canal(venta.getCanal())
                 .fechaVenta(venta.getFechaVenta())
                 .build();

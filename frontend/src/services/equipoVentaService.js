@@ -13,5 +13,12 @@ export const equipoVentaService = {
             body: formData,
             headers: {} // el api.js eliminará el Content-Type permitiendo que Axios asigne multipart/form-data
         });
+    },
+
+    venderEquipo: async (id, datosVenta) => {
+        return await api(`/equipos/${id}/vender`, {
+            method: 'PUT',
+            body: JSON.stringify(datosVenta)
+        });
     }
 };

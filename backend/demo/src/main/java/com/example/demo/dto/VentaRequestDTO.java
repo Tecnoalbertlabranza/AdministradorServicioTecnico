@@ -13,4 +13,6 @@ public class VentaRequestDTO {
     private String detalle;
     private Integer precioVenta;
     private String canal;
+    private String metodoPago;
+    private String tipoVenta;
 }

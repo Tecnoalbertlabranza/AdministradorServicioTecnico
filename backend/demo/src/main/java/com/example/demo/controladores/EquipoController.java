@@ -36,4 +36,17 @@ public class EquipoController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/{id}/vender")
+    public ResponseEntity<EquipoVentaResponseDTO> venderEquipo(
+            @PathVariable Long id,
+            @RequestBody com.example.demo.dto.VentaRequestDTO request) {
+        try {
+            EquipoVentaResponseDTO equipo = equipoService.venderEquipo(id, request);
+            return ResponseEntity.ok(equipo);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
