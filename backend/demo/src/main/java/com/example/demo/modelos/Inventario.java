@@ -32,4 +32,8 @@ public class Inventario {
 
     @UpdateTimestamp
     private Timestamp ultimaReposicion;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @OneToMany(mappedBy = "repuesto", cascade = CascadeType.ALL)
+    private java.util.List<TrabajoRepuesto> usosEnTrabajos = new java.util.ArrayList<>();
 }

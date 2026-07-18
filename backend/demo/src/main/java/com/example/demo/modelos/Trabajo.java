@@ -57,4 +57,7 @@ public class Trabajo {
 
     @UpdateTimestamp
     private Timestamp fechaActualizacion;
+
+    @OneToMany(mappedBy = "trabajo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<TrabajoRepuesto> repuestos = new java.util.ArrayList<>();
 }

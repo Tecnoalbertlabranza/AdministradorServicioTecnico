@@ -24,5 +24,5 @@ public class TrabajoRequestDTO {
     private Integer costoInsumos;
     private String plataforma;
     private String contacto;
-    private Long idRepuestoUtilizado;
+    private java.util.List<RepuestoUsoDTO> repuestosUsados;
 }

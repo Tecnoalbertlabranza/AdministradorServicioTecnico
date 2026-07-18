@@ -93,7 +93,6 @@ public class TrabajoService {
             cliente = clienteRepository.findById(dto.getIdCliente())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
             
-            // Actualizar contacto si viene en el request y no es nulo
             if (dto.getContacto() != null && !dto.getContacto().trim().isEmpty()) {
                 if ("WhatsApp".equalsIgnoreCase(plataforma)) {
                     cliente.setWhatsapp(dto.getContacto().trim());
@@ -109,22 +108,6 @@ public class TrabajoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Se requiere idCliente o nombreCliente");
         }
 
-        Integer costoInsumoFinal = dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0;
-
-        // Lógica de inventario
-        if (dto.getIdRepuestoUtilizado() != null) {
-            Inventario repuesto = inventarioRepository.findById(dto.getIdRepuestoUtilizado())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Repuesto no encontrado"));
-            
-            if (repuesto.getCantidadDisponible() <= 0) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No hay stock disponible para el repuesto seleccionado");
-            }
-
-            repuesto.setCantidadDisponible(repuesto.getCantidadDisponible() - 1);
-            inventarioRepository.save(repuesto);
-            costoInsumoFinal = repuesto.getCostoUnitario();
-        }
-
         Trabajo nuevoTrabajo = Trabajo.builder()
                 .cliente(cliente)
                 .equipo(dto.getEquipo())
@@ -133,10 +116,98 @@ public class TrabajoService {
                 .estado(EstadoTrabajo.PENDIENTE)
                 .precioTotal(dto.getPrecioTotal() != null ? dto.getPrecioTotal() : 0)
                 .abono(dto.getAbono() != null ? dto.getAbono() : 0)
-                .costoInsumos(costoInsumoFinal)
                 .plataforma(plataforma)
                 .build();
+        
+        nuevoTrabajo.setRepuestos(new java.util.ArrayList<>());
 
+        int costoInsumoFinal = dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0;
+
+        if (dto.getRepuestosUsados() != null && !dto.getRepuestosUsados().isEmpty()) {
+            costoInsumoFinal = 0;
+            for (com.example.demo.dto.RepuestoUsoDTO repUso : dto.getRepuestosUsados()) {
+                Inventario repuesto = inventarioRepository.findById(repUso.getRepuestoId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Repuesto no encontrado"));
+                
+                if (repuesto.getCantidadDisponible() < repUso.getCantidad()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stock insuficiente para el repuesto: " + repuesto.getNombre());
+                }
+
+                repuesto.setCantidadDisponible(repuesto.getCantidadDisponible() - repUso.getCantidad());
+                inventarioRepository.save(repuesto);
+
+                com.example.demo.modelos.TrabajoRepuesto trabajoRepuesto = com.example.demo.modelos.TrabajoRepuesto.builder()
+                        .trabajo(nuevoTrabajo)
+                        .repuesto(repuesto)
+                        .cantidadUsada(repUso.getCantidad())
+                        .precioUnitarioHistorico(repuesto.getCostoUnitario())
+                        .build();
+                
+                nuevoTrabajo.getRepuestos().add(trabajoRepuesto);
+                costoInsumoFinal += repUso.getCantidad() * repuesto.getCostoUnitario();
+            }
+        }
+
+        nuevoTrabajo.setCostoInsumos(costoInsumoFinal);
         return trabajoRepository.save(nuevoTrabajo);
+    }
+
+    @Transactional
+    public Trabajo actualizarTrabajo(Long id, TrabajoRequestDTO dto) {
+        Trabajo trabajo = obtenerPorId(id);
+
+        if (trabajo.getEstado() == EstadoTrabajo.ENTREGADO) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El trabajo ya fue entregado y no puede modificarse");
+        }
+
+        trabajo.setEquipo(dto.getEquipo());
+        if (dto.getModelo() != null) trabajo.setModelo(dto.getModelo());
+        trabajo.setServicio(dto.getServicio());
+        if (dto.getPrecioTotal() != null) trabajo.setPrecioTotal(dto.getPrecioTotal());
+        if (dto.getAbono() != null) trabajo.setAbono(dto.getAbono());
+        if (dto.getPlataforma() != null) trabajo.setPlataforma(dto.getPlataforma());
+        if (dto.getEstado() != null) trabajo.setEstado(dto.getEstado());
+
+        if (trabajo.getRepuestos() == null) {
+            trabajo.setRepuestos(new java.util.ArrayList<>());
+        }
+
+        // Revertir inventario actual
+        for (com.example.demo.modelos.TrabajoRepuesto tr : trabajo.getRepuestos()) {
+            Inventario inv = tr.getRepuesto();
+            inv.setCantidadDisponible(inv.getCantidadDisponible() + tr.getCantidadUsada());
+            inventarioRepository.save(inv);
+        }
+        trabajo.getRepuestos().clear();
+
+        int costoInsumoFinal = dto.getCostoInsumos() != null ? dto.getCostoInsumos() : 0;
+        
+        if (dto.getRepuestosUsados() != null && !dto.getRepuestosUsados().isEmpty()) {
+            costoInsumoFinal = 0;
+            for (com.example.demo.dto.RepuestoUsoDTO repUso : dto.getRepuestosUsados()) {
+                Inventario repuesto = inventarioRepository.findById(repUso.getRepuestoId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Repuesto no encontrado"));
+                
+                if (repuesto.getCantidadDisponible() < repUso.getCantidad()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stock insuficiente para el repuesto: " + repuesto.getNombre());
+                }
+
+                repuesto.setCantidadDisponible(repuesto.getCantidadDisponible() - repUso.getCantidad());
+                inventarioRepository.save(repuesto);
+
+                com.example.demo.modelos.TrabajoRepuesto trabajoRepuesto = com.example.demo.modelos.TrabajoRepuesto.builder()
+                        .trabajo(trabajo)
+                        .repuesto(repuesto)
+                        .cantidadUsada(repUso.getCantidad())
+                        .precioUnitarioHistorico(repuesto.getCostoUnitario())
+                        .build();
+                
+                trabajo.getRepuestos().add(trabajoRepuesto);
+                costoInsumoFinal += repUso.getCantidad() * repuesto.getCostoUnitario();
+            }
+        }
+
+        trabajo.setCostoInsumos(costoInsumoFinal);
+        return trabajoRepository.save(trabajo);
     }
 }

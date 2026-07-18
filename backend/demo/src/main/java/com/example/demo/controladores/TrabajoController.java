@@ -62,6 +62,16 @@ public class TrabajoController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizarTrabajo(@PathVariable Long id, @RequestBody com.example.demo.dto.TrabajoRequestDTO dto) {
+        try {
+            Trabajo trabajoActualizado = trabajoService.actualizarTrabajo(id, dto);
+            return ResponseEntity.ok(convertirADTO(trabajoActualizado));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        }
+    }
+
     @RequestMapping(value = "/{id}/estado", method = {RequestMethod.PUT, RequestMethod.PATCH})
     public ResponseEntity<?> actualizarEstado(@PathVariable Long id, @RequestBody com.example.demo.dto.EstadoTrabajoRequestDTO dto) {
         String nuevoEstadoStr = dto.getEstado();
