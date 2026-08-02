@@ -32,6 +32,11 @@ public class TrabajoService {
         return trabajoRepository.findAll();
     }
 
+    public List<Trabajo> obtenerTrabajosPendientes() {
+        return trabajoRepository.findByEstado(EstadoTrabajo.PENDIENTE);
+    }
+
+
     public List<Trabajo> listarPorMes(int mes, int anio) {
         YearMonth yearMonth = YearMonth.of(anio, mes);
         LocalDateTime inicio = yearMonth.atDay(1).atStartOfDay();

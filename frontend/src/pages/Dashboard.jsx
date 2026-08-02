@@ -28,10 +28,10 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Llamadas concurrentes al backend
+      // Llamadas concurrentes al backend usando nuestro cliente API
       const [dataTrabajos, dataResumen] = await Promise.all([
-        trabajoService.obtenerTodos().catch(err => {
-          console.warn("Fallo al obtener trabajos:", err);
+        trabajoService.obtenerPendientes().catch(err => {
+          console.warn("Fallo al obtener trabajos pendientes:", err);
           return [];
         }),
         dashboardService.obtenerResumen().catch(err => {
@@ -43,34 +43,22 @@ const Dashboard = () => {
       if (dataResumen) {
         setResumen(dataResumen);
       } else {
-        // Mock data si falla el endpoint de resumen
         setResumen({
-          totalIngresos: 450000,
-          totalCostos: 120000,
-          gananciaNeta: 330000,
-          cantidadVentas: 15
+          totalIngresos: 0,
+          totalCostos: 0,
+          gananciaNeta: 0,
+          cantidadVentas: 0
         });
       }
 
-      if (dataTrabajos && dataTrabajos.length > 0) {
-        dataTrabajos.sort((a, b) => b.idTrabajo - a.idTrabajo);
-        setTrabajos(dataTrabajos);
+      if (Array.isArray(dataTrabajos)) {
+        const ordenados = [...dataTrabajos].sort((a, b) => (b.idTrabajo || 0) - (a.idTrabajo || 0));
+        setTrabajos(ordenados);
       } else {
-        // Mock data temporal si el backend no retorna trabajos
-        setTrabajos([
-          {
-            idTrabajo: 1,
-            equipo: 'iPhone 13 Pro',
-            cliente: { nombre: 'Juan Pérez' },
-            estado: 'PENDIENTE',
-            servicio: 'Cambio de pantalla',
-            precioTotal: 150000,
-            abono: 50000,
-            fechaIngreso: new Date().toISOString()
-          }
-        ]);
+        setTrabajos([]);
       }
     } catch (err) {
+      console.error("Error al cargar el dashboard:", err);
       setError('Error general al cargar el dashboard');
     } finally {
       setLoading(false);

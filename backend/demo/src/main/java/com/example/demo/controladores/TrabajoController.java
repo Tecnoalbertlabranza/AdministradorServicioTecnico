@@ -25,14 +25,29 @@ public class TrabajoController {
             @RequestParam(required = false) Integer mes,
             @RequestParam(required = false) Integer anio) {
         
-        int mesFinal = (mes != null) ? mes : java.time.LocalDate.now().getMonthValue();
-        int anioFinal = (anio != null) ? anio : java.time.LocalDate.now().getYear();
+        List<Trabajo> lista;
+        if (mes == null && anio == null) {
+            lista = trabajoService.listarTodos();
+        } else {
+            int mesFinal = (mes != null) ? mes : java.time.LocalDate.now().getMonthValue();
+            int anioFinal = (anio != null) ? anio : java.time.LocalDate.now().getYear();
+            lista = trabajoService.listarPorMes(mesFinal, anioFinal);
+        }
 
-        List<TrabajoResponseDTO> trabajos = trabajoService.listarPorMes(mesFinal, anioFinal).stream()
+        List<TrabajoResponseDTO> trabajos = lista.stream()
                 .map(this::convertirADTO)
                 .toList();
         return ResponseEntity.ok(trabajos);
     }
+
+    @GetMapping("/pendientes")
+    public ResponseEntity<List<TrabajoResponseDTO>> obtenerPendientes() {
+        List<TrabajoResponseDTO> trabajos = trabajoService.obtenerTrabajosPendientes().stream()
+                .map(this::convertirADTO)
+                .toList();
+        return ResponseEntity.ok(trabajos);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {

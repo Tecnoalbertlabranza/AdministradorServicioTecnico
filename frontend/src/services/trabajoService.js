@@ -9,6 +9,11 @@ export const trabajoService = {
         return await api(url);
     },
 
+    obtenerPendientes: async () => {
+        return await api('/trabajos/pendientes');
+    },
+
+
     obtenerPorId: async (id) => {
         return await api(`/trabajos/${id}`);
     },
