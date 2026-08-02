@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl : `${rawBaseUrl}/`;
 
 // Crear instancia de axios
 const apiClient = axios.create({
@@ -86,8 +87,10 @@ async function fetchWithInterceptor(endpoint, options = {}) {
             requestData = body;
         }
 
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+
         const response = await apiClient({
-            url: endpoint,
+            url: cleanEndpoint,
             method: method,
             data: requestData,
             headers: customHeaders,
