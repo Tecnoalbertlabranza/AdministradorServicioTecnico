@@ -28,7 +28,7 @@ const DocumentoServicio = forwardRef(({ trabajo, tipoDoc, detalleReparacion }, r
       <div className="doc-header">
         <h1 className="doc-title">{titulo}</h1>
         <div className="doc-subtitle">
-          {esIngreso ? 'Comprobante de recepción de equipo' : 'Detalle de servicios y garantía'}
+          {esIngreso ? 'Comprobante de recepción de equipo' : 'Detalle de servicios'}
         </div>
       </div>
 
@@ -98,17 +98,13 @@ const DocumentoServicio = forwardRef(({ trabajo, tipoDoc, detalleReparacion }, r
         </div>
       </div>
 
-      <div className="doc-footer">
-        {esIngreso ? (
+      {esIngreso && (
+        <div className="doc-footer">
           <p>
             <strong>Términos y Condiciones:</strong> El taller no se responsabiliza por pérdida de datos; se recomienda respaldar su información. Todo equipo reparado y no retirado en 30 días genera cargos de bodegaje.
           </p>
-        ) : (
-          <p>
-            <strong>Garantía:</strong> Garantía de 30 días sobre el trabajo realizado detallado en este documento. No cubre daños por mal uso, golpes, líquidos o intervenciones de terceros posteriores a la entrega.
-          </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 });

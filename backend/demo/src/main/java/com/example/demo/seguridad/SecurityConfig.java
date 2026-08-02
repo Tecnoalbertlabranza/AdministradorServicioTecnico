@@ -31,9 +31,10 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/public/**").permitAll()
-                .requestMatchers("/api/v1/webhook/**").permitAll()
-                .requestMatchers("/api/v1/ventas/publicas").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/v1/public/**", "/public/**").permitAll()
+                .requestMatchers("/api/v1/webhook/**", "/webhook/**").permitAll()
+                .requestMatchers("/api/v1/ventas/publicas", "/ventas/publicas").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1/admin/**").authenticated()
                 .anyRequest().authenticated()

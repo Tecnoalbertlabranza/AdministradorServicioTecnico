@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const InputMoneda = ({ value, onChange, placeholder, required, disabled }) => {
+const InputMoneda = ({ value, onChange, placeholder, required, disabled, className = '' }) => {
   const [displayValue, setDisplayValue] = useState('');
 
   useEffect(() => {
@@ -35,6 +35,8 @@ const InputMoneda = ({ value, onChange, placeholder, required, disabled }) => {
     onChange(parseInt(numeros, 10));
   };
 
+  const defaultClasses = "w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 disabled:opacity-50 disabled:cursor-not-allowed";
+
   return (
     <input
       type="text"
@@ -43,7 +45,7 @@ const InputMoneda = ({ value, onChange, placeholder, required, disabled }) => {
       disabled={disabled}
       value={displayValue}
       onChange={handleChange}
-      style={disabled ? { opacity: 0.5, cursor: 'not-allowed', width: '100%' } : { width: '100%' }}
+      className={`${defaultClasses} ${className}`}
     />
   );
 };

@@ -4,7 +4,8 @@ import { trabajoService } from '../services/trabajoService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import Spinner from '../components/Spinner';
-import { RefreshCw, ListFilter, X, MessageCircle } from 'lucide-react';
+import ModalNuevoCliente from '../components/ModalNuevoCliente';
+import { RefreshCw, ListFilter, X, MessageCircle, UserPlus } from 'lucide-react';
 
 const IconInstagram = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-pink-500">
@@ -25,6 +26,9 @@ const Clientes = () => {
   const [historialTrabajos, setHistorialTrabajos] = useState([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [errorHistorial, setErrorHistorial] = useState(null);
+
+  // Estado para el modal de nuevo cliente
+  const [isNuevoClienteModalOpen, setIsNuevoClienteModalOpen] = useState(false);
 
   useEffect(() => {
     cargarClientes();
@@ -147,14 +151,23 @@ const Clientes = () => {
             value={searchTerm} 
             onChange={setSearchTerm} 
           />
-          <button 
-            onClick={cargarClientes} 
-            disabled={loading}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm md:text-base border transition shadow-sm cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Cargando...' : 'Refrescar'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={cargarClientes} 
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm md:text-base border transition shadow-sm cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Cargando...' : 'Refrescar'}
+            </button>
+            <button 
+              onClick={() => setIsNuevoClienteModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm md:text-base bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white transition shadow-md shadow-sky-500/20 cursor-pointer"
+            >
+              <UserPlus size={18} />
+              + Nuevo Cliente
+            </button>
+          </div>
         </div>
 
         {loading && clientes.length === 0 && <Spinner text="Cargando directorio de clientes..." />}
@@ -211,6 +224,13 @@ const Clientes = () => {
           </div>
         )}
       </div>
+
+      {/* Modal Crear Nuevo Cliente */}
+      <ModalNuevoCliente
+        isOpen={isNuevoClienteModalOpen}
+        onClose={() => setIsNuevoClienteModalOpen(false)}
+        onClienteCreado={cargarClientes}
+      />
 
       {/* Modal Historial de Pedidos */}
       {selectedCliente && (
