@@ -12,25 +12,31 @@ const KpiCard = ({ title, amount, subtitle, type, loading }) => {
   const isPositive = type === 'income' || type === 'profit';
 
   const textColor = isCost
-    ? 'text-red-400'
+    ? 'text-rose-600 dark:text-rose-400'
     : isPositive
-    ? 'text-emerald-400'
-    : 'text-white';
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : 'text-slate-900 dark:text-white';
+
+  const iconBg = isCost
+    ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
+    : isPositive
+    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+    : 'bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400';
 
   const IconComponent = isCost ? TrendingDown : isPositive && type === 'profit' ? DollarSign : TrendingUp;
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg flex flex-col justify-between w-full hover:border-slate-600 transition-all duration-200">
+    <div className="rounded-2xl p-6 shadow-sm border transition-all duration-200 flex flex-col justify-between w-full bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 hover:border-sky-500/30">
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="text-slate-400 font-medium text-sm flex items-center gap-2">
+          <span className="font-semibold text-sm text-slate-500 dark:text-slate-400">
             {title}
           </span>
-          <div className={`p-2 rounded-lg ${isCost ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+          <div className={`p-2.5 rounded-xl ${iconBg}`}>
             <IconComponent size={20} />
           </div>
         </div>
-        <div className={`text-3xl font-bold ${textColor}`}>
+        <div className={`text-3xl font-extrabold tracking-tight ${textColor}`}>
           {loading ? (
             <Spinner size="small" />
           ) : isCost && amount > 0 ? (
@@ -40,7 +46,11 @@ const KpiCard = ({ title, amount, subtitle, type, loading }) => {
           )}
         </div>
       </div>
-      {subtitle && <p className="text-xs text-slate-500 mt-3">{subtitle}</p>}
+      {subtitle && (
+        <p className="text-xs mt-3 font-medium text-slate-400 dark:text-slate-500">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 };
@@ -48,8 +58,8 @@ const KpiCard = ({ title, amount, subtitle, type, loading }) => {
 // --- COMPONENTE BLOQUE FINANCIERO ---
 const FinancialBlock = ({ title, icon: Icon, children }) => (
   <div className="w-full mb-8">
-    <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
-      {Icon && <Icon className="text-slate-300" size={24} />}
+    <h2 className="text-2xl font-bold mb-4 flex items-center gap-3 text-slate-900 dark:text-white">
+      {Icon && <Icon className="text-sky-500 dark:text-sky-400" size={24} />}
       {title}
     </h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
@@ -60,122 +70,95 @@ const FinancialBlock = ({ title, icon: Icon, children }) => (
 
 // --- COMPONENTE TABLA TRABAJOS PENDIENTES ---
 const PendingJobsTable = ({ trabajos, loading, error, updatingId, handleEstadoChange }) => {
-  const getBadgeStyle = (estado) => {
-    if (!estado) return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-    const est = estado.toLowerCase();
-    if (est === 'finalizado') return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-    if (est === 'entregado') return 'bg-blue-500/20 text-blue-300 border-blue-500/40';
-    return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-  };
-
   const trabajosPendientes = trabajos
     .filter((t) => t.estado === 'PENDIENTE')
     .slice(0, 5);
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-lg w-full mt-8">
+    <div className="rounded-2xl p-6 border w-full mt-8 bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-white">Trabajos Pendientes</h2>
-        <span className="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/30">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Trabajos Pendientes</h2>
+        <span className="text-xs font-bold px-3 py-1 rounded-full border bg-amber-100 text-orange-700 border-amber-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50">
           Pendientes: {trabajosPendientes.length}
         </span>
       </div>
 
       {loading && trabajos.length === 0 ? (
-        <div className="p-8 text-center text-slate-400">
-          <Spinner text="Cargando resumen de trabajos..." />
+        <Spinner text="Cargando trabajos pendientes..." />
+      ) : error ? (
+        <div className="p-4 text-center text-rose-500 font-semibold">{error}</div>
+      ) : trabajosPendientes.length === 0 ? (
+        <div className="p-8 text-center text-slate-500 dark:text-slate-400 font-medium">
+          No hay trabajos pendientes registrados.
         </div>
       ) : (
-        <>
-          {!loading && error && trabajos.length === 0 && (
-            <div className="p-8 text-center text-red-400 font-medium">{error}</div>
-          )}
-
-          {!loading && trabajos.length > 0 && trabajosPendientes.length === 0 && !error && (
-            <div className="p-8 text-center text-slate-400">No hay trabajos pendientes en este momento.</div>
-          )}
-
-          {!loading && trabajos.length === 0 && !error && (
-            <div className="p-8 text-center text-slate-400">No hay trabajos registrados.</div>
-          )}
-
-          {trabajosPendientes.length > 0 && (
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-700 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <th className="py-3 px-4">Cliente</th>
-                    <th className="py-3 px-4">Equipo</th>
-                    <th className="py-3 px-4">Fecha Ingreso</th>
-                    <th className="py-3 px-4">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/60">
-                  {trabajosPendientes.map((trabajo) => (
-                    <tr key={trabajo.idTrabajo} className="hover:bg-slate-700/40 transition">
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-white">
-                          {trabajo.cliente ? trabajo.cliente.nombre : 'Sin registrar'}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-0.5">{trabajo.servicio}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-medium text-slate-200">{trabajo.equipo}</div>
-                        <div className="text-xs text-emerald-400 mt-0.5">
-                          Abono: {formatearMoneda(trabajo.abono)}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-sm text-slate-400">
-                        {formatearFecha(trabajo.fechaIngreso)}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <select
-                            className={`px-3 py-1 rounded-lg text-xs font-medium border appearance-none cursor-pointer outline-none bg-slate-900 ${getBadgeStyle(
-                              trabajo.estado
-                            )} disabled:opacity-50`}
-                            value={trabajo.estado || 'PENDIENTE'}
-                            onChange={(e) => handleEstadoChange(trabajo.idTrabajo, e.target.value)}
-                            disabled={updatingId === trabajo.idTrabajo}
-                          >
-                            <option value="PENDIENTE" className="bg-slate-800 text-amber-300">PENDIENTE</option>
-                            <option value="FINALIZADO" className="bg-slate-800 text-emerald-300">FINALIZADO</option>
-                            <option value="ENTREGADO" className="bg-slate-800 text-blue-300">ENTREGADO</option>
-                          </select>
-                          {updatingId === trabajo.idTrabajo && (
-                            <span className="text-xs animate-spin text-slate-400">⏳</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
+                <th className="py-4 px-4">ID / Fecha</th>
+                <th className="py-4 px-4">Cliente</th>
+                <th className="py-4 px-4">Equipo y Falla</th>
+                <th className="py-4 px-4">Cobro</th>
+                <th className="py-4 px-4">Acción Rápida</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {trabajosPendientes.map((trabajo) => (
+                <tr key={trabajo.idTrabajo} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <td className="py-4 px-4">
+                    <div className="font-mono text-sm font-bold text-slate-400 dark:text-slate-500">
+                      #{trabajo.idTrabajo}
+                    </div>
+                    <div className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                      {formatearFecha(trabajo.fechaIngreso)}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 font-bold text-base text-slate-900 dark:text-white">
+                    {trabajo.cliente?.nombre || 'Sin registrar'}
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="font-bold text-base text-slate-800 dark:text-slate-100">{trabajo.equipo}</div>
+                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                      {trabajo.servicio || trabajo.falla || 'Sin detalle'}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 font-extrabold text-base text-emerald-600 dark:text-emerald-400">
+                    {formatearMoneda(trabajo.precioTotal)}
+                  </td>
+                  <td className="py-4 px-4">
+                    <button
+                      onClick={() => handleEstadoChange(trabajo.idTrabajo, 'EN_REVISION')}
+                      disabled={updatingId === trabajo.idTrabajo}
+                      className="px-3.5 py-2 rounded-xl text-sm font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 border border-sky-500/20 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {updatingId === trabajo.idTrabajo ? 'Guardando...' : 'Iniciar Revisión'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
 };
 
-// --- COMPONENTE PRINCIPAL DASHBOARD ---
 const Dashboard = () => {
-  const [trabajos, setTrabajos] = useState([]);
   const [resumen, setResumen] = useState({
     ingresosTrabajos: 0,
     costosTrabajos: 0,
     gananciaTrabajos: 0,
     ingresosVentas: 0,
     costosVentas: 0,
-    gananciaVentas: 0,
-    totalIngresos: 0,
-    totalCostos: 0,
-    gananciaNeta: 0,
-    cantidadVentas: 0,
+    gananciaVentas: 0
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [trabajos, setTrabajos] = useState([]);
+  const [loadingResumen, setLoadingResumen] = useState(true);
+  const [loadingTrabajos, setLoadingTrabajos] = useState(true);
+  const [errorResumen, setErrorResumen] = useState(null);
+  const [errorTrabajos, setErrorTrabajos] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
@@ -183,142 +166,130 @@ const Dashboard = () => {
   }, []);
 
   const cargarDatos = async () => {
+    cargarResumen();
+    cargarTrabajos();
+  };
+
+  const cargarResumen = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      const [dataTrabajos, dataResumen] = await Promise.all([
-        trabajoService.obtenerPendientes().catch((err) => {
-          console.warn('Fallo al obtener trabajos pendientes:', err);
-          return [];
-        }),
-        dashboardService.obtenerResumen().catch((err) => {
-          console.warn('Fallo al obtener resumen dashboard:', err);
-          return null;
-        }),
-      ]);
-
-      if (dataResumen) {
-        setResumen(dataResumen);
-      } else {
-        setResumen({
-          ingresosTrabajos: 0,
-          costosTrabajos: 0,
-          gananciaTrabajos: 0,
-          ingresosVentas: 0,
-          costosVentas: 0,
-          gananciaVentas: 0,
-          totalIngresos: 0,
-          totalCostos: 0,
-          gananciaNeta: 0,
-          cantidadVentas: 0,
-        });
-      }
-
-      if (Array.isArray(dataTrabajos)) {
-        const ordenados = [...dataTrabajos].sort(
-          (a, b) => (b.idTrabajo || 0) - (a.idTrabajo || 0)
-        );
-        setTrabajos(ordenados);
-      } else {
-        setTrabajos([]);
-      }
+      setLoadingResumen(true);
+      setErrorResumen(null);
+      const data = await dashboardService.obtenerResumen();
+      setResumen(data);
     } catch (err) {
-      console.error('Error al cargar el dashboard:', err);
-      setError('Error general al cargar el dashboard');
+      console.error(err);
+      setErrorResumen('Error al cargar métricas financieras');
     } finally {
-      setLoading(false);
+      setLoadingResumen(false);
     }
   };
 
-  const handleEstadoChange = async (id, nuevoEstado) => {
+  const cargarTrabajos = async () => {
     try {
-      setUpdatingId(id);
-      await trabajoService.actualizarEstado(id, nuevoEstado);
-      toast.success(`Estado actualizado a ${nuevoEstado}`);
-      await cargarDatos();
+      setLoadingTrabajos(true);
+      setErrorTrabajos(null);
+      const data = await trabajoService.obtenerTodos();
+      setTrabajos(data);
     } catch (err) {
-      toast.error(err.message || 'No se pudo actualizar el estado.');
+      console.error(err);
+      setErrorTrabajos('Error al cargar trabajos pendientes');
+    } finally {
+      setLoadingTrabajos(false);
+    }
+  };
+
+  const handleEstadoChange = async (idTrabajo, nuevoEstado) => {
+    try {
+      setUpdatingId(idTrabajo);
+      await trabajoService.actualizarEstado(idTrabajo, nuevoEstado);
+      toast.success('Estado actualizado correctamente');
+      setTrabajos((prev) =>
+        prev.map((t) => (t.idTrabajo === idTrabajo ? { ...t, estado: nuevoEstado } : t))
+      );
+    } catch (err) {
+      toast.error(err.message || 'Error al cambiar estado');
     } finally {
       setUpdatingId(null);
     }
   };
 
   return (
-    <div className="w-full min-h-screen overflow-y-auto p-4 md:p-6 space-y-6">
+    <div className="w-full min-h-screen p-4 md:p-6 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
       {/* Encabezado */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard Analítico</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Métricas financieras desglosadas por Servicio Técnico y Vitrina
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Dashboard General
+          </h1>
+          <p className="text-base mt-1 font-medium text-slate-500 dark:text-slate-400">
+            Resumen financiero y trabajos pendientes en taller y vitrina
           </p>
         </div>
         <button
           onClick={cargarDatos}
-          disabled={loading}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl border border-slate-700 transition shadow-md disabled:opacity-50 cursor-pointer"
+          disabled={loadingResumen || loadingTrabajos}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm md:text-base border transition shadow-sm cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
         >
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Cargando...' : 'Refrescar'}
+          <RefreshCw size={18} className={loadingResumen || loadingTrabajos ? 'animate-spin' : ''} />
+          {loadingResumen || loadingTrabajos ? 'Cargando...' : 'Actualizar Datos'}
         </button>
       </div>
 
-      {/* BLOQUE 1: Servicio Técnico (Trabajos) */}
-      <FinancialBlock title="Finanzas de Servicio Técnico (Trabajos)" icon={Wrench}>
+      {/* BLOQUE 1: SERVICIO TÉCNICO (TRABAJOS) */}
+      <FinancialBlock title="Finanzas de Servicio Técnico (Trabajos de Taller)" icon={Wrench}>
         <KpiCard
           title="Ingresos por Trabajos"
           amount={resumen.ingresosTrabajos}
-          subtitle="Cobros totales por servicios de reparación"
+          subtitle="Cobros totales de servicio técnico"
           type="income"
-          loading={loading}
+          loading={loadingResumen}
         />
         <KpiCard
           title="Costos de Insumos"
           amount={resumen.costosTrabajos}
-          subtitle="Gastos asociados a repuestos e insumos"
+          subtitle="Repuestos utilizados en reparaciones"
           type="cost"
-          loading={loading}
+          loading={loadingResumen}
         />
         <KpiCard
-          title="Ganancia Neta de Trabajos"
+          title="Ganancia Real Taller"
           amount={resumen.gananciaTrabajos}
-          subtitle="Utilidad neta generada en taller"
+          subtitle="Ingresos menos costo de repuestos"
           type="profit"
-          loading={loading}
+          loading={loadingResumen}
         />
       </FinancialBlock>
 
-      {/* BLOQUE 2: Vitrina (Ventas de Equipos) */}
-      <FinancialBlock title="Finanzas de Vitrina (Ventas de Equipos)" icon={ShoppingBag}>
+      {/* BLOQUE 2: VENTAS DE EQUIPOS (VITRINA) */}
+      <FinancialBlock title="Finanzas de Vitrina (Venta de Equipos)" icon={ShoppingBag}>
         <KpiCard
           title="Ingresos por Ventas"
           amount={resumen.ingresosVentas}
-          subtitle="Ventas de equipos y accesorios"
+          subtitle="Ventas totales de equipos reacondicionados"
           type="income"
-          loading={loading}
+          loading={loadingResumen}
         />
         <KpiCard
-          title="Costos Totales de Equipos"
+          title="Costos Equipos (Inversión)"
           amount={resumen.costosVentas}
-          subtitle="Costo Compra + Reacondicionamiento"
+          subtitle="Compra original + reacondicionamiento"
           type="cost"
-          loading={loading}
+          loading={loadingResumen}
         />
         <KpiCard
-          title="Ganancia Neta de Ventas"
+          title="Ganancia Real Vitrina"
           amount={resumen.gananciaVentas}
-          subtitle="Utilidad neta generada en vitrina"
+          subtitle="Ventas menos inversión total"
           type="profit"
-          loading={loading}
+          loading={loadingResumen}
         />
       </FinancialBlock>
 
       {/* TABLA DE TRABAJOS PENDIENTES */}
       <PendingJobsTable
         trabajos={trabajos}
-        loading={loading}
-        error={error}
+        loading={loadingTrabajos}
+        error={errorTrabajos}
         updatingId={updatingId}
         handleEstadoChange={handleEstadoChange}
       />

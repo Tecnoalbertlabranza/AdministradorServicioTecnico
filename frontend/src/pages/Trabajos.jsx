@@ -4,77 +4,97 @@ import CreatableSelect from 'react-select/creatable';
 import { trabajoService } from '../services/trabajoService';
 import { inventarioService } from '../services/inventarioService';
 import { clienteService } from '../services/clienteService';
-import { formatearFecha, formatearMoneda } from '../utils/formatters';
-import ModalInformeIA from '../components/ModalInformeIA';
+import { formatearFecha } from '../utils/formatters';
+import { useTheme } from '../context/ThemeContext';
 import InputMoneda from '../components/InputMoneda';
 import { toast } from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import SearchBar from '../components/SearchBar';
 import ModalDetalleTrabajo from '../components/ModalDetalleTrabajo';
-import './Trabajos.css';
-
-const IconEye = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
-);
+import { Eye, Plus, RefreshCw, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 const COLUMNAS_ESTADOS = [
-  { id: 'PENDIENTE', titulo: 'Pendiente', color: 'var(--accent-warning)' },
-  { id: 'EN_REVISION', titulo: 'En Revisión', color: 'var(--accent-primary)' },
-  { id: 'ESPERANDO_REPUESTO', titulo: 'Esperando Repuesto', color: 'var(--accent-danger)' },
-  { id: 'FINALIZADO', titulo: 'Finalizado / Listo', color: 'var(--accent-success)' },
-  { id: 'ENTREGADO', titulo: 'Entregado', color: '#a855f7' }
+  { 
+    id: 'PENDIENTE', 
+    titulo: 'Pendiente', 
+    badge: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50' 
+  },
+  { 
+    id: 'EN_REVISION', 
+    titulo: 'En Revisión', 
+    badge: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800/50' 
+  },
+  { 
+    id: 'ESPERANDO_REPUESTO', 
+    titulo: 'Esperando Repuesto', 
+    badge: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50' 
+  },
+  { 
+    id: 'FINALIZADO', 
+    titulo: 'Finalizado / Listo', 
+    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50' 
+  },
+  { 
+    id: 'ENTREGADO', 
+    titulo: 'Entregado', 
+    badge: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50' 
+  }
 ];
 
-const customSelectStyles = {
+const getSelectStyles = (isDark) => ({
   control: (base, state) => ({
     ...base,
-    backgroundColor: 'var(--bg-primary, #1e293b)',
-    borderColor: state.isFocused ? 'var(--accent-primary, #3b82f6)' : 'var(--border-color, #334155)',
-    boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
-    padding: '0.15rem',
-    borderRadius: 'var(--radius-md, 0.375rem)',
+    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+    borderColor: state.isFocused ? '#0284c7' : isDark ? '#334155' : '#cbd5e1',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(2, 132, 199, 0.2)' : 'none',
+    padding: '0.25rem',
+    borderRadius: '0.75rem',
+    fontSize: '0.95rem',
+    color: isDark ? '#f8fafc' : '#0f172a',
     '&:hover': {
-      borderColor: 'var(--accent-primary, #3b82f6)'
+      borderColor: '#0284c7'
     }
   }),
   menu: (base) => ({
     ...base,
-    backgroundColor: 'var(--bg-surface, #0f172a)',
-    border: '1px solid var(--border-color, #334155)',
+    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+    border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+    borderRadius: '0.75rem',
+    boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
     zIndex: 100
   }),
   option: (base, state) => ({
     ...base,
     backgroundColor: state.isSelected
-      ? 'var(--accent-primary, #3b82f6)'
+      ? '#0284c7'
       : state.isFocused
-      ? 'rgba(59, 130, 246, 0.1)'
+      ? isDark ? 'rgba(2, 132, 199, 0.2)' : '#f1f5f9'
       : 'transparent',
-    color: state.isDisabled ? '#ef4444' : 'var(--text-primary, #f8fafc)',
-    cursor: state.isDisabled ? 'not-allowed' : 'pointer',
-    fontStyle: state.isDisabled ? 'italic' : 'normal',
-    '&:active': {
-      backgroundColor: state.isDisabled ? 'transparent' : 'var(--accent-primary, #3b82f6)'
-    }
+    color: state.isDisabled ? '#ef4444' : isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem',
+    cursor: state.isDisabled ? 'not-allowed' : 'pointer'
   }),
   singleValue: (base) => ({
     ...base,
-    color: 'var(--text-primary, #f8fafc)'
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem'
   }),
   input: (base) => ({
     ...base,
-    color: 'var(--text-primary, #f8fafc)'
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem'
   }),
   placeholder: (base) => ({
     ...base,
-    color: 'var(--text-muted, #94a3b8)'
+    color: isDark ? '#64748b' : '#94a3b8',
+    fontSize: '0.95rem'
   })
-};
+});
 
 const Trabajos = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [trabajos, setTrabajos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -83,12 +103,10 @@ const Trabajos = () => {
   const [inventario, setInventario] = useState([]);
   const [clientes, setClientes] = useState([]);
   
-  // Estado para el modal de detalle
   const [selectedTrabajo, setSelectedTrabajo] = useState(null);
   const [isDetalleModalOpen, setIsDetalleModalOpen] = useState(false);
-  
-  // Estados del modal
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [newTrabajo, setNewTrabajo] = useState({
     cliente: '', plataforma: 'Local', contacto: '', 
     equipo: '', modelo: '', servicio: '', 
@@ -96,7 +114,7 @@ const Trabajos = () => {
   });
 
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1); // 1 a 12
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   useEffect(() => {
@@ -141,14 +159,8 @@ const Trabajos = () => {
   });
 
   const getEstadoBadgeClass = (estado) => {
-    switch(estado) {
-      case 'PENDIENTE': return 'status-badge status-pendiente';
-      case 'FINALIZADO': return 'status-badge status-finalizado';
-      case 'ENTREGADO': return 'status-badge status-entregado';
-      case 'ESPERANDO_REPUESTO': return 'status-badge status-error';
-      case 'EN_REVISION': return 'status-badge status-primary';
-      default: return 'status-badge';
-    }
+    const item = COLUMNAS_ESTADOS.find(c => c.id === estado);
+    return item ? item.badge : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700';
   };
 
   const handleVerDetalles = (trabajo) => {
@@ -161,7 +173,6 @@ const Trabajos = () => {
       setLoading(true);
       setError(null);
       const data = await trabajoService.obtenerTodos(currentMonth, currentYear);
-      // Ordenar por ID para consistencia visual (los más antiguos primero)
       data.sort((a, b) => a.idTrabajo - b.idTrabajo);
       setTrabajos(data);
     } catch (err) {
@@ -209,8 +220,8 @@ const Trabajos = () => {
       setIsModalOpen(false);
       setNewTrabajo({ cliente: '', plataforma: 'Local', contacto: '', equipo: '', modelo: '', servicio: '', precioTotal: '', abono: '', idRepuesto: '' });
       await cargarTrabajos();
-      await cargarInventario(); // Refrescar inventario por si se descontó
-      await cargarClientes(); // Refrescar por si se creó uno nuevo
+      await cargarInventario();
+      await cargarClientes();
     } catch (err) {
       toast.error(err.message || 'Error al crear el trabajo');
     }
@@ -245,7 +256,6 @@ const Trabajos = () => {
     }
     
     if (actionMeta.action === 'select-option' && selected.cliente) {
-      // Autocompletar plataforma y contacto
       let plat = 'Local';
       let cont = '';
       if (selected.cliente.whatsapp) {
@@ -261,116 +271,153 @@ const Trabajos = () => {
     }
   };
 
-  const getContactoConfig = () => {
-    switch (newTrabajo.plataforma) {
-      case 'WhatsApp': return { placeholder: 'Ej: +56912345678', disabled: false };
-      case 'Instagram': return { placeholder: 'Ej: @usuario', disabled: false };
-      default: return { placeholder: 'No aplica', disabled: true };
-    }
-  };
-  const contactoConfig = getContactoConfig();
-
-  const TabsNav = () => (
-    <div className="tabs-container">
-      <button 
-        className={`tab-btn ${filtroEstado === 'Todos' ? 'active' : ''}`}
-        onClick={() => setFiltroEstado('Todos')}
-      >
-        Todos
-      </button>
-      {COLUMNAS_ESTADOS.map(col => (
-        <button
-          key={col.id}
-          className={`tab-btn ${filtroEstado === col.id ? 'active' : ''}`}
-          onClick={() => setFiltroEstado(col.id)}
-          style={filtroEstado === col.id ? { borderBottomColor: col.color, color: col.color } : {}}
-        >
-          {col.titulo}
-        </button>
-      ))}
-    </div>
-  );
+  const selectStyles = getSelectStyles(isDark);
 
   return (
-    <div className="layout-page-container">
-      <div className="trabajos-header">
-        <h1 className="trabajos-title">Gestor de Trabajos</h1>
+    <div className="w-full min-h-screen p-4 md:p-6 space-y-6 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+      {/* Encabezado Principal */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Gestor de Trabajos
+          </h1>
+          <p className="text-base mt-1 font-medium text-slate-500 dark:text-slate-400">
+            Control integral de servicios técnicos, entregas y estados
+          </p>
+        </div>
       </div>
 
-      <div className="trabajos-toolbar">
+      {/* Toolbar de Acciones */}
+      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
         <SearchBar 
           placeholder="Buscar por equipo, cliente o falla..." 
           value={searchTerm} 
           onChange={setSearchTerm} 
         />
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-            + Nuevo Trabajo Manual
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-bold text-sm md:text-base px-5 py-2.5 rounded-xl transition duration-200 shadow-md shadow-sky-500/20 cursor-pointer" 
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Plus size={20} />
+            Nuevo Trabajo Manual
           </button>
-          <button className="btn-secondary" onClick={cargarTrabajos} disabled={loading}>
-            {loading ? '↻ Cargando...' : '↻ Refrescar Tablero'}
+          <button 
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm md:text-base border transition shadow-sm cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700" 
+            onClick={cargarTrabajos} 
+            disabled={loading}
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Cargando...' : 'Refrescar Tablero'}
           </button>
         </div>
       </div>
 
-      {error && <div className="error-state">{error}</div>}
+      {error && (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 font-semibold text-base">
+          {error}
+        </div>
+      )}
 
       {loading && trabajos.length === 0 ? (
         <Spinner text="Cargando trabajos..." />
       ) : (
-        <div className="data-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-            <TabsNav />
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: 'var(--bg-primary)', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-              <button onClick={handlePrevMonth} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.25rem 0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>&lsaquo;</button>
-              <span style={{ fontWeight: '500', textTransform: 'capitalize', minWidth: '120px', textAlign: 'center', color: 'var(--text-primary)' }}>
+        <div className="p-6 rounded-2xl border bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
+          {/* Navegación por pestañas y filtro de mes */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+            {/* Pestañas de estado */}
+            <div className="flex flex-wrap gap-2 p-2 rounded-xl border bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800">
+              <button 
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  filtroEstado === 'Todos'
+                    ? 'bg-sky-500 text-white shadow-md'
+                    : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
+                }`}
+                onClick={() => setFiltroEstado('Todos')}
+              >
+                Todos
+              </button>
+              {COLUMNAS_ESTADOS.map((col) => (
+                <button
+                  key={col.id}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                    filtroEstado === col.id
+                      ? 'bg-sky-500 text-white shadow-md'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
+                  }`}
+                  onClick={() => setFiltroEstado(col.id)}
+                >
+                  {col.titulo}
+                </button>
+              ))}
+            </div>
+
+            {/* Selector de Mes */}
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border text-base font-bold bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white">
+              <button 
+                onClick={handlePrevMonth} 
+                className="p-1 hover:text-sky-500 transition cursor-pointer"
+                title="Mes Anterior"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <span className="capitalize min-w-[140px] text-center font-extrabold">
                 {getMonthName(currentMonth)} {currentYear}
               </span>
-              <button onClick={handleNextMonth} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '0.25rem 0.5rem', fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>&rsaquo;</button>
+              <button 
+                onClick={handleNextMonth} 
+                className="p-1 hover:text-sky-500 transition cursor-pointer"
+                title="Mes Siguiente"
+              >
+                <ChevronRight size={22} />
+              </button>
             </div>
           </div>
 
           {filteredTrabajos.length === 0 ? (
-            <div className="empty-state">No se encontraron trabajos para este filtro.</div>
+            <div className="p-12 text-center text-base font-semibold text-slate-500 dark:text-slate-400">
+              No se encontraron trabajos para este filtro.
+            </div>
           ) : (
-            <div className="table-responsive">
-              <table className="data-table">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr>
-                    <th>ID / Fecha</th>
-                    <th>Cliente</th>
-                    <th>Equipo y Modelo</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                  <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
+                    <th className="py-4 px-4">ID / Fecha</th>
+                    <th className="py-4 px-4">Cliente</th>
+                    <th className="py-4 px-4">Equipo y Modelo</th>
+                    <th className="py-4 px-4">Estado</th>
+                    <th className="py-4 px-4">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {filteredTrabajos.map(trabajo => (
-                    <tr key={trabajo.idTrabajo}>
-                      <td>
-                        <div style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{trabajo.idTrabajo}</div>
-                        <div style={{ fontSize: '0.85rem' }}>{formatearFecha(trabajo.fechaIngreso)}</div>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredTrabajos.map((trabajo) => (
+                    <tr key={trabajo.idTrabajo} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                      <td className="py-4 px-4">
+                        <div className="font-mono text-sm font-bold text-slate-400 dark:text-slate-500">#{trabajo.idTrabajo}</div>
+                        <div className="text-sm mt-0.5 font-medium text-slate-600 dark:text-slate-300">{formatearFecha(trabajo.fechaIngreso)}</div>
                       </td>
-                      <td>
-                        <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.cliente?.nombre || 'Sin registrar'}</div>
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-base text-slate-900 dark:text-white">
+                          {trabajo.cliente?.nombre || 'Sin registrar'}
+                        </div>
                       </td>
-                      <td>
-                        <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.equipo}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{trabajo.modelo || 'Genérico'}</div>
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-base text-slate-800 dark:text-slate-100">{trabajo.equipo}</div>
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{trabajo.modelo || 'Genérico'}</div>
                       </td>
-                      <td>
-                        <span className={getEstadoBadgeClass(trabajo.estado || 'PENDIENTE')}>
-                          {(trabajo.estado || 'PENDIENTE').replace('_', ' ')}
+                      <td className="py-4 px-4">
+                        <span className={`px-3.5 py-1.5 rounded-full text-sm font-bold border inline-block ${getEstadoBadgeClass(trabajo.estado || 'PENDIENTE')}`}>
+                          {(trabajo.estado || 'PENDIENTE').replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td>
+                      <td className="py-4 px-4">
                         <button 
-                          className="btn-action" 
+                          className="flex items-center gap-2 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 px-4 py-2 rounded-xl text-sm font-bold transition border border-sky-500/20 cursor-pointer" 
                           onClick={() => handleVerDetalles(trabajo)}
                           title="Ver Detalles"
                         >
-                          <IconEye />
+                          <Eye size={16} />
                           Ver Detalles
                         </button>
                       </td>
@@ -383,6 +430,7 @@ const Trabajos = () => {
         </div>
       )}
 
+      {/* Modal Detalle Trabajo */}
       <ModalDetalleTrabajo
         isOpen={isDetalleModalOpen}
         onClose={() => setIsDetalleModalOpen(false)}
@@ -390,25 +438,31 @@ const Trabajos = () => {
         onUpdate={cargarTrabajos}
       />
 
-      {/* Modal Nuevo Trabajo Manual (2 columnas) */}
+      {/* Modal Nuevo Trabajo Manual */}
       {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content modal-content-large">
-            <div className="modal-header">
-              <h2>Nuevo Trabajo Manual</h2>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}>✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-4xl rounded-2xl border p-6 shadow-2xl space-y-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Nuevo Trabajo Manual</h2>
+              <button 
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
+                onClick={() => setIsModalOpen(false)}
+              >
+                <X size={24} />
+              </button>
             </div>
-            <form className="modal-form" onSubmit={handleGuardarTrabajo}>
-              <div className="modal-grid">
-                
+
+            <form onSubmit={handleGuardarTrabajo} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Columna Izquierda: Cliente y Cobros */}
-                <div className="modal-grid-col">
-                  <h3 className="section-title">Datos del Cliente</h3>
-                  <div className="form-group">
-                    <label>Nombre</label>
+                <div className="space-y-4">
+                  <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500">Datos del Cliente</h3>
+                  
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Nombre</label>
                     <CreatableSelect
                       options={clienteOptions}
-                      styles={customSelectStyles}
+                      styles={selectStyles}
                       placeholder="Selecciona o escribe un nombre..."
                       value={newTrabajo.cliente ? { label: newTrabajo.cliente, value: newTrabajo.cliente } : null}
                       onChange={handleClienteChange}
@@ -418,65 +472,97 @@ const Trabajos = () => {
                       required
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Plataforma de Contacto</label>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Plataforma de Contacto</label>
                     <Select
                       options={plataformaOptions}
-                      styles={customSelectStyles}
+                      styles={selectStyles}
                       value={selectedPlataformaOption}
                       onChange={(selected) => setNewTrabajo({...newTrabajo, plataforma: selected ? selected.value : 'Local'})}
                       isSearchable={false}
                     />
                   </div>
-                  <div className="form-group">
-                    <label>Contacto (Número o @usuario)</label>
-                    <input type="text" 
-                      placeholder={contactoConfig.placeholder} 
-                      disabled={contactoConfig.disabled}
-                      value={contactoConfig.disabled ? '' : newTrabajo.contacto} 
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Contacto (Número o @usuario)</label>
+                    <input 
+                      type="text" 
+                      placeholder={newTrabajo.plataforma === 'WhatsApp' ? 'Ej: +56912345678' : newTrabajo.plataforma === 'Instagram' ? 'Ej: @usuario' : 'No aplica'} 
+                      disabled={newTrabajo.plataforma === 'Local'}
+                      value={newTrabajo.plataforma === 'Local' ? '' : newTrabajo.contacto} 
                       onChange={(e) => setNewTrabajo({...newTrabajo, contacto: e.target.value})} 
-                      style={contactoConfig.disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                      className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed focus:border-sky-500"
                     />
                   </div>
 
-                  <h3 className="section-title mt-4">Cobros</h3>
-                  <div className="form-group">
-                    <label>Precio Total a Cobrar</label>
-                    <InputMoneda placeholder="Ej: $ 150.000" required
-                      value={newTrabajo.precioTotal} onChange={(val) => setNewTrabajo({...newTrabajo, precioTotal: val})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Abono Inicial</label>
-                    <InputMoneda placeholder="Ej: $ 50.000"
-                      value={newTrabajo.abono} onChange={(val) => setNewTrabajo({...newTrabajo, abono: val})} />
+                  <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500 pt-2">Cobros</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Precio Total</label>
+                      <InputMoneda 
+                        placeholder="Ej: $ 150.000" 
+                        required
+                        value={newTrabajo.precioTotal} 
+                        onChange={(val) => setNewTrabajo({...newTrabajo, precioTotal: val})} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Abono Inicial</label>
+                      <InputMoneda 
+                        placeholder="Ej: $ 50.000"
+                        value={newTrabajo.abono} 
+                        onChange={(val) => setNewTrabajo({...newTrabajo, abono: val})} 
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Columna Derecha: Equipo e Inventario */}
-                <div className="modal-grid-col">
-                  <h3 className="section-title">Datos del Equipo</h3>
-                  <div className="form-group">
-                    <label>Equipo</label>
-                    <input type="text" placeholder="Ej: Laptop, Consola, Celular" required 
-                      value={newTrabajo.equipo} onChange={(e) => setNewTrabajo({...newTrabajo, equipo: e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Modelo</label>
-                    <input type="text" placeholder="Ej: HP Pavilion, PS5" 
-                      value={newTrabajo.modelo} onChange={(e) => setNewTrabajo({...newTrabajo, modelo: e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Falla / Servicio a realizar</label>
-                    <textarea placeholder="Ej: Cambio de pantalla" required rows="3" style={{width:'100%', padding:'0.75rem', borderRadius:'var(--radius-md)', border:'1px solid var(--border-color)', backgroundColor:'var(--bg-surface)'}}
-                      value={newTrabajo.servicio} onChange={(e) => setNewTrabajo({...newTrabajo, servicio: e.target.value})} />
+                <div className="space-y-4">
+                  <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500">Datos del Equipo</h3>
+                  
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Equipo</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: Laptop, Consola, Celular" 
+                      required 
+                      value={newTrabajo.equipo} 
+                      onChange={(e) => setNewTrabajo({...newTrabajo, equipo: e.target.value})} 
+                      className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500"
+                    />
                   </div>
 
-                  <h3 className="section-title mt-4">Inventario</h3>
-                  <div className="form-group">
-                    <label>Repuesto a utilizar (Opcional)</label>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Modelo</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: HP Pavilion, PS5" 
+                      value={newTrabajo.modelo} 
+                      onChange={(e) => setNewTrabajo({...newTrabajo, modelo: e.target.value})} 
+                      className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Falla / Servicio a realizar</label>
+                    <textarea 
+                      placeholder="Ej: Cambio de pantalla" 
+                      required 
+                      rows="3" 
+                      value={newTrabajo.servicio} 
+                      onChange={(e) => setNewTrabajo({...newTrabajo, servicio: e.target.value})} 
+                      className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500"
+                    />
+                  </div>
+
+                  <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500 pt-2">Inventario</h3>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Repuesto a utilizar (Opcional)</label>
                     <Select
                       options={inventoryOptions}
-                      styles={customSelectStyles}
+                      styles={selectStyles}
                       placeholder="Buscar repuesto..."
                       isClearable
                       noOptionsMessage={() => "No se encontraron repuestos"}
@@ -485,11 +571,22 @@ const Trabajos = () => {
                     />
                   </div>
                 </div>
-
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Guardar Trabajo</button>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button 
+                  type="button" 
+                  className="px-5 py-2.5 rounded-xl text-base font-bold border transition cursor-pointer bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2.5 rounded-xl text-base font-bold transition shadow-md shadow-sky-500/20 cursor-pointer"
+                >
+                  Guardar Trabajo
+                </button>
               </div>
             </form>
           </div>

@@ -4,31 +4,13 @@ import { trabajoService } from '../services/trabajoService';
 import { formatearMoneda, formatearFecha } from '../utils/formatters';
 import SearchBar from '../components/SearchBar';
 import Spinner from '../components/Spinner';
-import './Clientes.css';
-import './Inventario.css'; // Reutilizamos estilos modales y tablas
+import { RefreshCw, ListFilter, X, MessageCircle } from 'lucide-react';
 
 const IconInstagram = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#E1306C' }}>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-pink-500">
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-  </svg>
-);
-
-const IconWhatsApp = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#25D366' }}>
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-  </svg>
-);
-
-const IconList = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-    <line x1="8" y1="6" x2="21" y2="6"></line>
-    <line x1="8" y1="12" x2="21" y2="12"></line>
-    <line x1="8" y1="18" x2="21" y2="18"></line>
-    <line x1="3" y1="6" x2="3.01" y2="6"></line>
-    <line x1="3" y1="12" x2="3.01" y2="12"></line>
-    <line x1="3" y1="18" x2="3.01" y2="18"></line>
   </svg>
 );
 
@@ -36,8 +18,6 @@ const Clientes = () => {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Estado para la barra de búsqueda
   const [searchTerm, setSearchTerm] = useState('');
 
   // Estado para el modal de historial
@@ -55,36 +35,14 @@ const Clientes = () => {
       setLoading(true);
       setError(null);
       const data = await clienteService.obtenerTodos();
-      // Ordenar por fecha de registro descendente
       data.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
       setClientes(data);
     } catch (err) {
       setError(err.message || 'Error al cargar los clientes');
-      
-      // Fallback a Mock Data si el backend está caído
-      console.log("Usando mock data para Clientes...");
       setClientes([
-        {
-          idCliente: '1',
-          nombre: 'Juan Pérez',
-          whatsapp: '+56912345678',
-          instagram: null,
-          fechaRegistro: new Date().toISOString()
-        },
-        {
-          idCliente: '2',
-          nombre: 'María Gómez',
-          whatsapp: null,
-          instagram: 'mariag.tech',
-          fechaRegistro: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          idCliente: '3',
-          nombre: 'Pedro Soto',
-          whatsapp: '+56998765432',
-          instagram: 'psoto99',
-          fechaRegistro: new Date(Date.now() - 172800000).toISOString()
-        }
+        { idCliente: '1', nombre: 'Juan Pérez', whatsapp: '+56912345678', instagram: null, fechaRegistro: new Date().toISOString() },
+        { idCliente: '2', nombre: 'María Gómez', whatsapp: null, instagram: 'mariag.tech', fechaRegistro: new Date(Date.now() - 86400000).toISOString() },
+        { idCliente: '3', nombre: 'Pedro Soto', whatsapp: '+56998765432', instagram: 'psoto99', fechaRegistro: new Date(Date.now() - 172800000).toISOString() }
       ]);
     } finally {
       setLoading(false);
@@ -99,12 +57,10 @@ const Clientes = () => {
 
     try {
       const trabajos = await trabajoService.obtenerPorCliente(cliente.idCliente);
-      // Ordenar por fecha de ingreso descendente
       trabajos.sort((a, b) => new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
       setHistorialTrabajos(trabajos);
     } catch (err) {
       setErrorHistorial(err.message || 'Error al obtener el historial de pedidos.');
-      console.error(err);
       setHistorialTrabajos([]);
     } finally {
       setLoadingHistorial(false);
@@ -118,11 +74,13 @@ const Clientes = () => {
   };
 
   const getEstadoBadgeClass = (estado) => {
-    switch(estado) {
-      case 'PENDIENTE': return 'status-badge status-pendiente';
-      case 'FINALIZADO': return 'status-badge status-finalizado';
-      case 'ENTREGADO': return 'status-badge status-entregado';
-      default: return 'status-badge';
+    switch (estado) {
+      case 'PENDIENTE': return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50';
+      case 'EN_REVISION': return 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800/50';
+      case 'ESPERANDO_REPUESTO': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50';
+      case 'FINALIZADO': return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50';
+      case 'ENTREGADO': return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
     }
   };
 
@@ -130,41 +88,37 @@ const Clientes = () => {
     const contacts = [];
     if (cliente.whatsapp) {
       contacts.push(
-        <div key="wa" className="contact-cell">
-          <span className="contact-icon"><IconWhatsApp /></span>
+        <div key="wa" className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+          <MessageCircle size={16} />
           <span>{cliente.whatsapp}</span>
         </div>
       );
     }
     if (cliente.instagram) {
       contacts.push(
-        <div key="ig" className="contact-cell">
-          <span className="contact-icon"><IconInstagram /></span>
+        <div key="ig" className="flex items-center gap-2 text-sm font-bold text-pink-600 dark:text-pink-400">
+          <IconInstagram />
           <span>@{cliente.instagram}</span>
         </div>
       );
     }
-    
-    if (contacts.length === 0) return <span style={{ color: 'var(--text-muted)' }}>Sin contacto</span>;
-    
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-        {contacts}
-      </div>
-    );
+
+    if (contacts.length === 0) return <span className="text-slate-400 text-sm">Sin contacto</span>;
+
+    return <div className="flex flex-col gap-1">{contacts}</div>;
   };
 
   const getChannelBadge = (cliente) => {
     if (cliente.whatsapp && cliente.instagram) {
-      return <span className="channel-badge channel-multi">Multicanal</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-sky-100 text-sky-700 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800/50">Multicanal</span>;
     }
     if (cliente.whatsapp) {
-      return <span className="channel-badge channel-whatsapp">WhatsApp</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50">WhatsApp</span>;
     }
     if (cliente.instagram) {
-      return <span className="channel-badge channel-instagram">Instagram</span>;
+      return <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-pink-100 text-pink-700 border border-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:border-pink-800/50">Instagram</span>;
     }
-    return <span className="channel-badge" style={{ backgroundColor: 'transparent', color: 'var(--text-muted)' }}>Desconocido</span>;
+    return <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">Desconocido</span>;
   };
 
   const filteredClientes = clientes.filter(c => 
@@ -172,83 +126,81 @@ const Clientes = () => {
   );
 
   return (
-    <div className="dashboard-container">
-      <div className="clientes-header">
-        <h1 className="clientes-title">Directorio de Clientes</h1>
+    <div className="w-full min-h-screen p-4 md:p-6 space-y-6 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+      {/* Encabezado */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 rounded-2xl border bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Directorio de Clientes
+          </h1>
+          <p className="text-base mt-1 font-medium text-slate-500 dark:text-slate-400">
+            Historial de clientes, canales de contacto y registros de servicio
+          </p>
+        </div>
       </div>
 
-      <div className="data-section">
-        <div className="data-section-header">
-          <h2 className="data-section-title">Clientes Registrados</h2>
-          <button 
-            onClick={cargarClientes} 
-            disabled={loading}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: '0.875rem'
-            }}
-          >
-            {loading ? '↻ Cargando...' : '↻ Refrescar'}
-          </button>
-        </div>
-        
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+      {/* Contenedor Principal */}
+      <div className="p-6 rounded-2xl border bg-white dark:bg-[#1e293b] border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
           <SearchBar 
             placeholder="Buscar cliente por nombre..." 
             value={searchTerm} 
             onChange={setSearchTerm} 
           />
+          <button 
+            onClick={cargarClientes} 
+            disabled={loading}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm md:text-base border transition shadow-sm cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Cargando...' : 'Refrescar'}
+          </button>
         </div>
 
         {loading && clientes.length === 0 && <Spinner text="Cargando directorio de clientes..." />}
-        
+
         {!loading && error && clientes.length === 0 && (
-          <div className="error-state">
-            <p>{error}</p>
-          </div>
+          <div className="p-8 text-center text-rose-500 font-semibold text-base">{error}</div>
         )}
 
         {!loading && clientes.length === 0 && !error && (
-          <div className="empty-state">No hay clientes registrados aún.</div>
+          <div className="p-12 text-center text-base font-semibold text-slate-500 dark:text-slate-400">
+            No hay clientes registrados aún.
+          </div>
         )}
 
         {!loading && clientes.length > 0 && filteredClientes.length === 0 && (
-          <div className="empty-state">No se encontraron clientes que coincidan con la búsqueda.</div>
+          <div className="p-12 text-center text-base font-semibold text-slate-500 dark:text-slate-400">
+            No se encontraron clientes que coincidan con la búsqueda.
+          </div>
         )}
 
         {filteredClientes.length > 0 && (
-          <div className="table-responsive">
-            <table className="data-table">
+          <div className="overflow-x-auto w-full mt-4">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr>
-                  <th>Nombre del Cliente</th>
-                  <th>Contacto</th>
-                  <th>Canal de Origen</th>
-                  <th>Acciones</th>
+                <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
+                  <th className="py-4 px-4">Nombre del Cliente</th>
+                  <th className="py-4 px-4">Contacto</th>
+                  <th className="py-4 px-4">Canal de Origen</th>
+                  <th className="py-4 px-4">Acciones</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredClientes.map((cliente) => (
-                  <tr key={cliente.idCliente}>
-                    <td>
-                      <div className="item-name">{cliente.nombre}</div>
+                  <tr key={cliente.idCliente} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <td className="py-4 px-4 font-bold text-base text-slate-900 dark:text-white">
+                      {cliente.nombre}
                     </td>
-                    <td>
-                      {getContactInfo(cliente)}
-                    </td>
-                    <td>
-                      {getChannelBadge(cliente)}
-                    </td>
-                    <td>
+                    <td className="py-4 px-4">{getContactInfo(cliente)}</td>
+                    <td className="py-4 px-4">{getChannelBadge(cliente)}</td>
+                    <td className="py-4 px-4">
                       <button 
-                        className="btn-action" 
+                        className="flex items-center gap-2 bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 px-4 py-2 rounded-xl text-sm font-bold transition border border-sky-500/20 cursor-pointer" 
                         onClick={() => handleVerPedidos(cliente)}
                         title="Ver historial de trabajos"
                       >
-                        <IconList />
+                        <ListFilter size={16} />
                         Ver Pedidos
                       </button>
                     </td>
@@ -262,68 +214,59 @@ const Clientes = () => {
 
       {/* Modal Historial de Pedidos */}
       {selectedCliente && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-content" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">Historial de Pedidos</h3>
-              <button className="btn-close" onClick={handleCloseModal}>✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto" onClick={handleCloseModal}>
+          <div className="w-full max-w-3xl rounded-2xl border p-6 shadow-2xl space-y-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Historial de Pedidos</h3>
+              <button className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer" onClick={handleCloseModal}>
+                <X size={24} />
+              </button>
             </div>
             
-            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <p style={{ color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
-                Mostrando trabajos de <strong>{selectedCliente.nombre}</strong>.
+            <div className="space-y-4">
+              <p className="text-base font-medium text-slate-600 dark:text-slate-300">
+                Mostrando trabajos registrados de <strong className="text-sky-500">{selectedCliente.nombre}</strong>.
               </p>
               
-              {loadingHistorial && (
-                <Spinner text="Cargando historial..." />
-              )}
+              {loadingHistorial && <Spinner text="Cargando historial..." />}
 
               {!loadingHistorial && errorHistorial && (
-                <div className="error-state" style={{ padding: '2rem 1rem' }}>
-                  {errorHistorial}
-                </div>
+                <div className="p-4 rounded-xl bg-rose-500/10 text-rose-500 font-semibold text-center text-base">{errorHistorial}</div>
               )}
 
               {!loadingHistorial && !errorHistorial && historialTrabajos.length === 0 && (
-                <div style={{
-                  backgroundColor: 'rgba(19, 27, 44, 0.3)',
-                  border: '1px dashed var(--border-color)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '3rem 1rem',
-                  textAlign: 'center',
-                  color: 'var(--text-secondary)'
-                }}>
+                <div className="p-8 text-center rounded-xl border border-dashed text-base font-semibold bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
                   Este cliente aún no tiene pedidos registrados.
                 </div>
               )}
 
               {!loadingHistorial && !errorHistorial && historialTrabajos.length > 0 && (
-                <div className="table-responsive" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
-                  <table className="data-table">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Equipo / Falla</th>
-                        <th>Estado</th>
-                        <th>Total</th>
+                      <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
+                        <th className="py-3.5 px-4">ID</th>
+                        <th className="py-3.5 px-4">Fecha</th>
+                        <th className="py-3.5 px-4">Equipo / Falla</th>
+                        <th className="py-3.5 px-4">Estado</th>
+                        <th className="py-3.5 px-4">Total</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                       {historialTrabajos.map(trabajo => (
-                        <tr key={trabajo.idTrabajo}>
-                          <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)' }}>#{trabajo.idTrabajo}</td>
-                          <td>{formatearFecha(trabajo.fechaIngreso)}</td>
-                          <td>
-                            <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{trabajo.equipo}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{trabajo.servicio || trabajo.falla}</div>
+                        <tr key={trabajo.idTrabajo} className="transition hover:bg-slate-50 dark:hover:bg-slate-700/60">
+                          <td className="py-3.5 px-4 font-mono text-sm font-bold text-slate-400 dark:text-slate-500">#{trabajo.idTrabajo}</td>
+                          <td className="py-3.5 px-4 text-sm font-medium text-slate-600 dark:text-slate-300">{formatearFecha(trabajo.fechaIngreso)}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-base text-slate-900 dark:text-white">{trabajo.equipo}</div>
+                            <div className="text-sm font-medium text-slate-400">{trabajo.servicio || trabajo.falla}</div>
                           </td>
-                          <td>
-                            <span className={getEstadoBadgeClass(trabajo.estado)}>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-3.5 py-1.5 rounded-full text-sm font-bold border inline-block ${getEstadoBadgeClass(trabajo.estado)}`}>
                               {trabajo.estado}
                             </span>
                           </td>
-                          <td style={{ fontWeight: '600', color: 'var(--accent-success)' }}>
+                          <td className="py-3.5 px-4 font-extrabold text-base text-emerald-600 dark:text-emerald-400">
                             {formatearMoneda(trabajo.precioTotal)}
                           </td>
                         </tr>
@@ -334,8 +277,12 @@ const Clientes = () => {
               )}
             </div>
             
-            <div className="modal-footer">
-              <button type="button" className="btn-secondary" onClick={handleCloseModal}>
+            <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
+              <button 
+                type="button" 
+                className="px-5 py-2.5 rounded-xl text-base font-bold border transition cursor-pointer bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+                onClick={handleCloseModal}
+              >
                 Cerrar
               </button>
             </div>

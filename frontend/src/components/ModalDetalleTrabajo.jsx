@@ -4,54 +4,10 @@ import { toast } from 'react-hot-toast';
 import Select from 'react-select';
 import { formatearMoneda } from '../utils/formatters';
 import { trabajoService } from '../services/trabajoService';
+import { useTheme } from '../context/ThemeContext';
 import DocumentoServicio from './DocumentoServicio';
 import ModalInformeIA from './ModalInformeIA';
-
-const customSelectStyles = {
-  control: (base, state) => ({
-    ...base,
-    backgroundColor: 'var(--bg-primary, #1e293b)',
-    borderColor: state.isFocused ? 'var(--accent-primary, #3b82f6)' : 'var(--border-color, #334155)',
-    boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.2)' : 'none',
-    padding: '0.15rem',
-    borderRadius: 'var(--radius-md, 0.375rem)',
-    '&:hover': {
-      borderColor: 'var(--accent-primary, #3b82f6)'
-    }
-  }),
-  menu: (base) => ({
-    ...base,
-    backgroundColor: 'var(--bg-surface, #0f172a)',
-    border: '1px solid var(--border-color, #334155)',
-    zIndex: 100
-  }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? 'var(--accent-primary, #3b82f6)'
-      : state.isFocused
-      ? 'rgba(59, 130, 246, 0.1)'
-      : 'transparent',
-    color: state.isDisabled ? '#ef4444' : 'var(--text-primary, #f8fafc)',
-    cursor: state.isDisabled ? 'not-allowed' : 'pointer',
-    fontStyle: state.isDisabled ? 'italic' : 'normal',
-    '&:active': {
-      backgroundColor: state.isDisabled ? 'transparent' : 'var(--accent-primary, #3b82f6)'
-    }
-  }),
-  singleValue: (base) => ({
-    ...base,
-    color: 'var(--text-primary, #f8fafc)'
-  }),
-  input: (base) => ({
-    ...base,
-    color: 'var(--text-primary, #f8fafc)'
-  }),
-  placeholder: (base) => ({
-    ...base,
-    color: 'var(--text-muted, #94a3b8)'
-  })
-};
+import { Printer, Sparkles, X } from 'lucide-react';
 
 const COLUMNAS_ESTADOS = [
   { id: 'PENDIENTE', titulo: 'Pendiente' },
@@ -61,7 +17,60 @@ const COLUMNAS_ESTADOS = [
   { id: 'ENTREGADO', titulo: 'Entregado' }
 ];
 
+const getSelectStyles = (isDark) => ({
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+    borderColor: state.isFocused ? '#0284c7' : isDark ? '#334155' : '#cbd5e1',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(2, 132, 199, 0.2)' : 'none',
+    padding: '0.25rem',
+    borderRadius: '0.75rem',
+    fontSize: '0.95rem',
+    color: isDark ? '#f8fafc' : '#0f172a',
+    '&:hover': {
+      borderColor: '#0284c7'
+    }
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+    border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+    borderRadius: '0.75rem',
+    boxShadow: isDark ? '0 10px 15px -3px rgba(0, 0, 0, 0.5)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    zIndex: 100
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? '#0284c7'
+      : state.isFocused
+      ? isDark ? 'rgba(2, 132, 199, 0.2)' : '#f1f5f9'
+      : 'transparent',
+    color: state.isDisabled ? '#ef4444' : isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem',
+    cursor: state.isDisabled ? 'not-allowed' : 'pointer'
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem'
+  }),
+  input: (base) => ({
+    ...base,
+    color: isDark ? '#f8fafc' : '#0f172a',
+    fontSize: '0.95rem'
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: isDark ? '#64748b' : '#94a3b8',
+    fontSize: '0.95rem'
+  })
+});
+
 const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   if (!isOpen || !trabajo) return null;
 
   const printComponentRef = useRef();
@@ -100,8 +109,8 @@ const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
     }
   };
 
-  const handleEstadoChange = async (e) => {
-    const nuevoEstado = e.target.value;
+  const handleEstadoChange = async (selectedOption) => {
+    const nuevoEstado = selectedOption.value;
     try {
       await trabajoService.actualizarEstado(trabajo.idTrabajo, nuevoEstado);
       toast.success('Estado actualizado correctamente');
@@ -111,97 +120,123 @@ const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
     }
   };
 
+  const selectStyles = getSelectStyles(isDark);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" style={{ maxWidth: '800px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header" style={{ flexShrink: 0 }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Detalles del Trabajo #{trabajo.idTrabajo}</h2>
-          <button className="close-btn" onClick={onClose}>✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border shadow-2xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700 shrink-0">
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Detalles del Trabajo #{trabajo.idTrabajo}</h2>
+          <button className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer" onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
         
-        <div className="modal-body" style={{ padding: '1.5rem 2rem', overflowY: 'auto', flexGrow: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        {/* Body */}
+        <div className="p-6 overflow-y-auto flex-grow space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* Columna Izquierda */}
-            <div>
-              <h3 className="section-title">Información del Cliente</h3>
-              <div style={{ marginBottom: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Nombre:</span>
-                <div style={{ fontWeight: '500' }}>{trabajo.cliente?.nombre || 'Sin registrar'}</div>
+            <div className="space-y-4">
+              <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500">Información del Cliente</h3>
+              
+              <div>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Nombre:</span>
+                <div className="font-bold text-lg text-slate-900 dark:text-white">{trabajo.cliente?.nombre || 'Sin registrar'}</div>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Canal de Contacto:</span>
-                <div>{trabajo.plataforma || 'Local (Presencial)'}</div>
+              
+              <div>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Canal de Contacto:</span>
+                <div className="text-base font-semibold text-slate-800 dark:text-slate-200">{trabajo.plataforma || 'Local (Presencial)'}</div>
               </div>
+
               {trabajo.cliente && (trabajo.cliente.whatsapp || trabajo.cliente.instagram) && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Contacto:</span>
-                  <div>{trabajo.cliente.whatsapp || trabajo.cliente.instagram}</div>
+                <div>
+                  <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Contacto:</span>
+                  <div className="text-base font-bold text-sky-500">{trabajo.cliente.whatsapp || trabajo.cliente.instagram}</div>
                 </div>
               )}
               
-              <h3 className="section-title" style={{ marginTop: '2rem' }}>Detalles del Equipo</h3>
-              <div style={{ marginBottom: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Equipo:</span>
-                <div style={{ fontWeight: '500' }}>{trabajo.equipo}</div>
+              <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500 pt-4">Detalles del Equipo</h3>
+              
+              <div>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Equipo:</span>
+                <div className="font-bold text-lg text-slate-900 dark:text-white">{trabajo.equipo}</div>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Modelo:</span>
-                <div>{trabajo.modelo || 'Generico'}</div>
+              
+              <div>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Modelo:</span>
+                <div className="text-base font-semibold text-slate-800 dark:text-slate-200">{trabajo.modelo || 'Generico'}</div>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Falla / Servicio:</span>
-                <div style={{ backgroundColor: 'var(--bg-primary)', padding: '0.75rem', borderRadius: '0.375rem', marginTop: '0.25rem', fontSize: '0.9rem' }}>
+              
+              <div>
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Falla / Servicio:</span>
+                <div className="p-4 rounded-xl border mt-1 text-base font-medium bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
                   {trabajo.servicio}
                 </div>
               </div>
             </div>
 
             {/* Columna Derecha */}
-            <div>
-              <h3 className="section-title">Estado y Acciones</h3>
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Cambiar Estado:</label>
-                <div style={{ marginTop: '0.25rem', marginBottom: '0.5rem' }}>
-                  <Select
-                    options={COLUMNAS_ESTADOS.map(est => ({ value: est.id, label: est.titulo }))}
-                    styles={customSelectStyles}
-                    value={COLUMNAS_ESTADOS.map(est => ({ value: est.id, label: est.titulo })).find(op => op.value === trabajo.estado) || null}
-                    onChange={(selected) => handleEstadoChange({ target: { value: selected.value } })}
-                    isDisabled={trabajo.estado === 'ENTREGADO'}
-                    isSearchable={false}
-                  />
-                </div>
+            <div className="space-y-4">
+              <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500">Estado y Acciones</h3>
+              
+              <div>
+                <label className="block text-sm font-bold mb-1 text-slate-500 dark:text-slate-400">
+                  Cambiar Estado:
+                </label>
+                <Select
+                  options={COLUMNAS_ESTADOS.map(est => ({ value: est.id, label: est.titulo }))}
+                  styles={selectStyles}
+                  value={COLUMNAS_ESTADOS.map(est => ({ value: est.id, label: est.titulo })).find(op => op.value === trabajo.estado) || null}
+                  onChange={handleEstadoChange}
+                  isDisabled={trabajo.estado === 'ENTREGADO'}
+                  isSearchable={false}
+                />
                 {trabajo.estado === 'ENTREGADO' && (
-                  <small style={{ color: 'var(--text-muted)' }}>El trabajo ya fue entregado y no puede modificarse.</small>
+                  <p className="text-sm font-bold text-amber-500 mt-1">El trabajo ya fue entregado y no puede modificarse.</p>
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
-                <button className="btn-secondary" onClick={() => triggerPrint('INGRESO')} style={{ flex: 1, padding: '0.5rem' }}>
-                  📥 Imprimir Ingreso
+              <div className="flex gap-3 pt-2">
+                <button 
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold border transition cursor-pointer bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+                  onClick={() => triggerPrint('INGRESO')}
+                >
+                  <Printer size={18} />
+                  Imprimir Ingreso
                 </button>
-                <button className="btn-secondary" onClick={() => triggerPrint('ENTREGA')} style={{ flex: 1, padding: '0.5rem' }}>
-                  📤 Informe (IA)
+                <button 
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 border border-sky-500/30 transition cursor-pointer"
+                  onClick={() => triggerPrint('ENTREGA')}
+                >
+                  <Sparkles size={18} />
+                  Informe (IA)
                 </button>
               </div>
 
-              <h3 className="section-title">Finanzas y Repuestos</h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Costo Insumos:</span>
-                <span style={{ color: 'var(--accent-danger)' }}>{formatearMoneda(trabajo.costoInsumos || 0)}</span>
+              <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500 pt-4">Finanzas y Repuestos</h3>
+              
+              <div className="space-y-3 text-base">
+                <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">Costo Insumos:</span>
+                  <span className="font-bold text-rose-500">{formatearMoneda(trabajo.costoInsumos || 0)}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">Abono Inicial:</span>
+                  <span className="font-bold text-emerald-500">{formatearMoneda(trabajo.abono || 0)}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="font-bold text-slate-900 dark:text-white">Precio Total:</span>
+                  <span className="font-extrabold text-lg text-slate-900 dark:text-white">{formatearMoneda(trabajo.precioTotal || 0)}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Abono Inicial:</span>
-                <span style={{ color: 'var(--accent-success)' }}>{formatearMoneda(trabajo.abono || 0)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ fontWeight: 600 }}>Precio Total:</span>
-                <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{formatearMoneda(trabajo.precioTotal || 0)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--bg-primary)', borderRadius: '0.5rem' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Restante por cobrar:</span>
-                <span style={{ fontWeight: 600, color: 'var(--accent-warning)', fontSize: '1.2rem' }}>
+
+              <div className="p-4 rounded-xl border flex justify-between items-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+                <span className="font-bold text-base text-slate-900 dark:text-white">Restante por cobrar:</span>
+                <span className="font-extrabold text-xl text-amber-500">
                   {formatearMoneda(Math.max(0, (trabajo.precioTotal || 0) - (trabajo.abono || 0)))}
                 </span>
               </div>
@@ -209,11 +244,18 @@ const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
           </div>
         </div>
 
-        <div className="modal-footer" style={{ flexShrink: 0, backgroundColor: '#0f172a' }}>
-          <button type="button" className="btn-secondary" onClick={onClose}>Cerrar</button>
+        {/* Footer */}
+        <div className="flex justify-end p-4 border-t border-slate-200 dark:border-slate-700 shrink-0">
+          <button 
+            type="button" 
+            className="px-5 py-2.5 rounded-xl text-base font-bold border transition cursor-pointer bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+            onClick={onClose}
+          >
+            Cerrar
+          </button>
         </div>
         
-        {/* Hidden Components for Printing */}
+        {/* Componentes Ocultos de Impresión / IA */}
         <DocumentoServicio 
           ref={printComponentRef} 
           trabajo={printData.trabajo} 

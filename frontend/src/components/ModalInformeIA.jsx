@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import fetchWithInterceptor from '../services/api';
 import DocumentoServicio from './DocumentoServicio';
 import Spinner from './Spinner';
-import './ModalInformeIA.css';
+import { Sparkles, Printer, X } from 'lucide-react';
 
 const ModalInformeIA = ({ isOpen, onClose, trabajo }) => {
   const [notasCrudas, setNotasCrudas] = useState('');
@@ -39,7 +39,6 @@ const ModalInformeIA = ({ isOpen, onClose, trabajo }) => {
       }
     } catch (error) {
       console.error('Error mejorando texto:', error);
-      // El interceptor ya muestra el toast
     } finally {
       setIsImproving(false);
     }
@@ -64,13 +63,9 @@ const ModalInformeIA = ({ isOpen, onClose, trabajo }) => {
     setIsPrinting(true);
   };
 
-  // Trigger print logic safely after state is set
   useEffect(() => {
     if (isPrinting && printComponentRef.current) {
       executePrint();
-      // We don't set isPrinting to false here because executePrint might be async.
-      // We rely on onAfterPrint and onPrintError. But if the print dialog is cancelled, 
-      // onAfterPrint is still called by some browsers. To be safe, we just let it be.
     }
   }, [isPrinting, executePrint]);
 
@@ -79,48 +74,65 @@ const ModalInformeIA = ({ isOpen, onClose, trabajo }) => {
   const isAiDisabled = isImproving || !notasCrudas.trim();
 
   return (
-    <div className="modal-ia-overlay" onClick={onClose}>
-      <div className="modal-ia-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-ia-header">
-          <h2 className="modal-ia-title">Generar Informe de Entrega</h2>
-          <button className="modal-ia-close" onClick={onClose}>×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-2xl border p-6 shadow-2xl space-y-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            Generar Informe de Entrega (IA)
+          </h2>
+          <button className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer" onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
 
-        <div className="modal-ia-section">
-          <label className="modal-ia-label">Notas del Técnico (Borrador)</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+            Notas del Técnico (Borrador)
+          </label>
           <textarea
-            className="modal-ia-textarea"
+            className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 min-h-[100px]"
             value={notasCrudas}
             onChange={(e) => setNotasCrudas(e.target.value)}
             placeholder="Escribe aquí las notas rápidas de lo que hiciste..."
           />
         </div>
 
-        <div className="modal-ia-action-center">
+        <div className="flex justify-center my-2">
           <button 
-            className="btn-ai-magic" 
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold bg-sky-500 hover:bg-sky-600 text-white transition shadow-md shadow-sky-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleMejorarConIA}
             disabled={isAiDisabled}
           >
-            {isImproving ? <Spinner text="" size="small" color="#ffffff" /> : '✨'}
-            {isImproving ? 'Mejorando...' : 'Mejorar redacción con IA'}
+            {isImproving ? <Spinner size="small" color="#ffffff" /> : <Sparkles size={18} />}
+            {isImproving ? 'Mejorando con IA...' : 'Mejorar redacción con IA'}
           </button>
         </div>
 
-        <div className="modal-ia-section">
-          <label className="modal-ia-label">Informe Técnico Final (Editable)</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+            Informe Técnico Final (Editable)
+          </label>
           <textarea
-            className="modal-ia-textarea"
+            className="w-full px-4 py-2.5 rounded-xl border text-base font-medium outline-none transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 min-h-[140px]"
             value={textoFinal}
             onChange={(e) => setTextoFinal(e.target.value)}
-            style={{ minHeight: '150px' }}
           />
         </div>
 
-        <div className="modal-ia-footer">
-          <button className="btn-secondary" onClick={onClose}>Cancelar</button>
-          <button className="btn-primary" onClick={handlePrintClick} disabled={isPrinting}>
-            {isPrinting ? 'Generando...' : '🖨️ Generar PDF'}
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <button 
+            className="px-5 py-2.5 rounded-xl text-base font-bold border transition cursor-pointer bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+          <button 
+            className="flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white px-6 py-2.5 rounded-xl text-base font-bold transition shadow-md shadow-sky-500/20 cursor-pointer disabled:opacity-50"
+            onClick={handlePrintClick} 
+            disabled={isPrinting}
+          >
+            <Printer size={18} />
+            {isPrinting ? 'Generando...' : 'Generar PDF'}
           </button>
         </div>
 
