@@ -121,6 +121,16 @@ public class TrabajoController {
         }
     }
 
+    @RequestMapping(value = "/{id}/informe", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    public ResponseEntity<?> actualizarInformeTecnico(@PathVariable Long id, @RequestBody com.example.demo.dto.InformeTecnicoRequestDTO dto) {
+        try {
+            Trabajo trabajoActualizado = trabajoService.guardarInformeTecnico(id, dto.getInformeTecnico());
+            return ResponseEntity.ok(convertirADTO(trabajoActualizado));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        }
+    }
+
     private TrabajoResponseDTO convertirADTO(Trabajo trabajo) {
         ClienteResponseDTO clienteDTO = null;
         if (trabajo.getCliente() != null) {
@@ -143,6 +153,7 @@ public class TrabajoController {
                 .precioTotal(trabajo.getPrecioTotal())
                 .abono(trabajo.getAbono())
                 .costoInsumos(trabajo.getCostoInsumos())
+                .informeTecnico(trabajo.getInformeTecnico())
                 .fechaIngreso(trabajo.getFechaIngreso())
                 .fechaActualizacion(trabajo.getFechaActualizacion())
                 .build();

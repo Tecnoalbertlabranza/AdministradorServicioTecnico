@@ -215,4 +215,11 @@ public class TrabajoService {
         trabajo.setCostoInsumos(costoInsumoFinal);
         return trabajoRepository.save(trabajo);
     }
+
+    @Transactional
+    public Trabajo guardarInformeTecnico(Long id, String informeTecnico) {
+        Trabajo trabajo = obtenerPorId(id);
+        trabajo.setInformeTecnico(informeTecnico);
+        return trabajoRepository.save(trabajo);
+    }
 }

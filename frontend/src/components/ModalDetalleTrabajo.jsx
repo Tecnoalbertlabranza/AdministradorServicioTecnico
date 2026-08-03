@@ -7,7 +7,7 @@ import { trabajoService } from '../services/trabajoService';
 import { useTheme } from '../context/ThemeContext';
 import DocumentoServicio from './DocumentoServicio';
 import ModalInformeIA from './ModalInformeIA';
-import { Printer, Sparkles, X } from 'lucide-react';
+import { Printer, Sparkles, FileText, X } from 'lucide-react';
 
 const COLUMNAS_ESTADOS = [
   { id: 'PENDIENTE', titulo: 'Pendiente' },
@@ -208,13 +208,23 @@ const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
                   <Printer size={18} />
                   Imprimir Ingreso
                 </button>
-                <button 
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 border border-sky-500/30 transition cursor-pointer"
-                  onClick={() => triggerPrint('ENTREGA')}
-                >
-                  <Sparkles size={18} />
-                  Informe (IA)
-                </button>
+                {trabajo.informeTecnico && trabajo.informeTecnico.trim() ? (
+                  <button 
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 border border-purple-500/30 transition cursor-pointer"
+                    onClick={() => triggerPrint('ENTREGA')}
+                  >
+                    <FileText size={18} />
+                    Ver / Descargar Informe
+                  </button>
+                ) : (
+                  <button 
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-500/20 border border-sky-500/30 transition cursor-pointer"
+                    onClick={() => triggerPrint('ENTREGA')}
+                  >
+                    <Sparkles size={18} />
+                    Informe (IA)
+                  </button>
+                )}
               </div>
 
               <h3 className="text-base font-extrabold uppercase tracking-wider text-sky-500 pt-4">Finanzas y Repuestos</h3>
@@ -266,6 +276,7 @@ const ModalDetalleTrabajo = ({ trabajo, isOpen, onClose, onUpdate }) => {
           isOpen={modalIAOpen}
           onClose={() => setModalIAOpen(false)}
           trabajo={trabajoIA}
+          onUpdate={onUpdate}
         />
       </div>
     </div>

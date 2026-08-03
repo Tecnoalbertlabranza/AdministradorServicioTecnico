@@ -51,6 +51,9 @@ public class Trabajo {
     @Column(nullable = true)
     private String plataforma;
 
+    @Column(columnDefinition = "TEXT")
+    private String informeTecnico;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Timestamp fechaIngreso;

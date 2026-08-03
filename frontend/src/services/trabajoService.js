@@ -41,5 +41,12 @@ export const trabajoService = {
             method: 'PUT',
             body: JSON.stringify({ monto })
         });
+    },
+
+    guardarInformeTecnico: async (id, informeTecnico) => {
+        return await api(`/trabajos/${id}/informe`, {
+            method: 'PATCH',
+            body: JSON.stringify({ informeTecnico })
+        });
     }
 };

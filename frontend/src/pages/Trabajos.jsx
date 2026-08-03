@@ -175,6 +175,11 @@ const Trabajos = () => {
       const data = await trabajoService.obtenerTodos(currentMonth, currentYear);
       data.sort((a, b) => a.idTrabajo - b.idTrabajo);
       setTrabajos(data);
+      setSelectedTrabajo(prev => {
+        if (!prev) return null;
+        const updated = data.find(t => t.idTrabajo === prev.idTrabajo);
+        return updated || prev;
+      });
     } catch (err) {
       setError(err.message || 'Error al cargar los trabajos');
     } finally {
