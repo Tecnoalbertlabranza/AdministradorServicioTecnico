@@ -189,19 +189,19 @@ const Clientes = () => {
         )}
 
         {filteredClientes.length > 0 && (
-          <div className="overflow-x-auto w-full mt-4">
+          <div className="overflow-x-auto w-full mt-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg bg-white dark:bg-slate-900/40">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
-                  <th className="py-4 px-4">Nombre del Cliente</th>
-                  <th className="py-4 px-4">Contacto</th>
-                  <th className="py-4 px-4">Canal de Origen</th>
-                  <th className="py-4 px-4">Acciones</th>
+                <tr className="border-b border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100/80 dark:bg-slate-950/80">
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Nombre del Cliente</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Contacto</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Canal de Origen</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {filteredClientes.map((cliente) => (
-                  <tr key={cliente.idCliente} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <tr key={cliente.idCliente} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors duration-150 ease-in-out cursor-pointer">
                     <td className="py-4 px-4 font-bold text-base text-slate-900 dark:text-white">
                       {cliente.nombre}
                     </td>
@@ -261,20 +261,20 @@ const Clientes = () => {
               )}
 
               {!loadingHistorial && !errorHistorial && historialTrabajos.length > 0 && (
-                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg bg-white dark:bg-slate-900/40">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
-                        <th className="py-3.5 px-4">ID</th>
-                        <th className="py-3.5 px-4">Fecha</th>
-                        <th className="py-3.5 px-4">Equipo / Falla</th>
-                        <th className="py-3.5 px-4">Estado</th>
-                        <th className="py-3.5 px-4">Total</th>
+                      <tr className="border-b border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100/80 dark:bg-slate-950/80">
+                        <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">ID</th>
+                        <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Fecha</th>
+                        <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Equipo / Falla</th>
+                        <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Estado</th>
+                        <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                       {historialTrabajos.map(trabajo => (
-                        <tr key={trabajo.idTrabajo} className="transition hover:bg-slate-50 dark:hover:bg-slate-700/60">
+                        <tr key={trabajo.idTrabajo} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors duration-150 ease-in-out cursor-pointer">
                           <td className="py-3.5 px-4 font-mono text-sm font-bold text-slate-400 dark:text-slate-500">#{trabajo.idTrabajo}</td>
                           <td className="py-3.5 px-4 text-sm font-medium text-slate-600 dark:text-slate-300">{formatearFecha(trabajo.fechaIngreso)}</td>
                           <td className="py-3.5 px-4">

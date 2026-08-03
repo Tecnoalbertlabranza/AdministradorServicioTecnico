@@ -176,20 +176,20 @@ const Inventario = () => {
         )}
 
         {filteredRepuestos.length > 0 && (
-          <div className="overflow-x-auto w-full mt-4">
+          <div className="overflow-x-auto w-full mt-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg bg-white dark:bg-slate-900/40">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
-                  <th className="py-4 px-4">Insumo / Repuesto</th>
-                  <th className="py-4 px-4">Costo Unitario</th>
-                  <th className="py-4 px-4">Estado de Stock</th>
-                  <th className="py-4 px-4">Última Actualización</th>
-                  <th className="py-4 px-4">Acciones</th>
+                <tr className="border-b border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100/80 dark:bg-slate-950/80">
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Insumo / Repuesto</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Costo Unitario</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Estado de Stock</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Última Actualización</th>
+                  <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {filteredRepuestos.map((item) => (
-                  <tr key={item.idRepuesto} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <tr key={item.idRepuesto} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors duration-150 ease-in-out cursor-pointer">
                     <td className="py-4 px-4 font-bold text-base text-slate-900 dark:text-white">
                       {item.nombre}
                     </td>

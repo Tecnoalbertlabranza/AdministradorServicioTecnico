@@ -92,20 +92,20 @@ const PendingJobsTable = ({ trabajos, loading, error, updatingId, handleEstadoCh
           No hay trabajos pendientes registrados.
         </div>
       ) : (
-        <div className="overflow-x-auto w-full">
+        <div className="overflow-x-auto w-full mt-4 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg bg-white dark:bg-slate-900/40">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b text-sm font-bold uppercase tracking-wider border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-100/70 dark:bg-slate-950/50">
-                <th className="py-4 px-4">ID / Fecha</th>
-                <th className="py-4 px-4">Cliente</th>
-                <th className="py-4 px-4">Equipo y Falla</th>
-                <th className="py-4 px-4">Cobro</th>
-                <th className="py-4 px-4">Acción Rápida</th>
+              <tr className="border-b border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-100/80 dark:bg-slate-950/80">
+                <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">ID / Fecha</th>
+                <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Cliente</th>
+                <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Equipo y Falla</th>
+                <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Cobro</th>
+                <th className="py-3.5 px-4 font-semibold text-xs uppercase tracking-wider">Acción Rápida</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {trabajosPendientes.map((trabajo) => (
-                <tr key={trabajo.idTrabajo} className="transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                <tr key={trabajo.idTrabajo} className="hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors duration-150 ease-in-out cursor-pointer">
                   <td className="py-4 px-4">
                     <div className="font-mono text-sm font-bold text-slate-400 dark:text-slate-500">
                       #{trabajo.idTrabajo}
