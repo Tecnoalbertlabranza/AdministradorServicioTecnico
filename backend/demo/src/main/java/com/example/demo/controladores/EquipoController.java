@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/equipos")
+@RequestMapping({"/api/v1/equipos", "/equipos"})
 @RequiredArgsConstructor
 public class EquipoController {
 

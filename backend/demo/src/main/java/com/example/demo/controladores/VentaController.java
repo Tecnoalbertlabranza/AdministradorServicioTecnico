@@ -16,7 +16,7 @@ import com.example.demo.servicios.VentaService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/ventas")
+@RequestMapping({"/api/v1/ventas", "/ventas"})
 @RequiredArgsConstructor
 public class VentaController {
 
